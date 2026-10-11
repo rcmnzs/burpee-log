@@ -104,4 +104,27 @@ class DashboardCalculatorTest {
         // Se dia sem treino: nivel 0
         assertEquals(0, DashboardCalculator.calcularNivel(0, 0, recSix, recNavy, HeatmapMode.AMBOS))
     }
+
+    @Test
+    fun `calcularNivel com recorde zero retorna nivel 0 (todo cinza)`() {
+        // Se ainda não houver recorde do tipo, mapa todo em cinza (nível 0)
+        assertEquals(0, DashboardCalculator.calcularNivel(50, 0, 0, 0, HeatmapMode.SIX_COUNT))
+        assertEquals(0, DashboardCalculator.calcularNivel(0, 30, 0, 0, HeatmapMode.NAVY_SEAL))
+        assertEquals(0, DashboardCalculator.calcularNivel(50, 30, 0, 0, HeatmapMode.AMBOS))
+    }
+
+    @Test
+    fun `gerarFaixasLegenda produz faixas corretas para Six-Count, Navy Seal e Ambos`() {
+        val faixasSix = DashboardCalculator.gerarFaixasLegenda(HeatmapMode.SIX_COUNT, 100, 40)
+        assertEquals("1–25 · 26–50 · 51–75 · 76+", faixasSix)
+
+        val faixasNavy = DashboardCalculator.gerarFaixasLegenda(HeatmapMode.NAVY_SEAL, 100, 40)
+        assertEquals("1–10 · 11–20 · 21–30 · 31+", faixasNavy)
+
+        val faixasSemRecorde = DashboardCalculator.gerarFaixasLegenda(HeatmapMode.SIX_COUNT, 0, 0)
+        assertEquals("Nenhum recorde registrado ainda", faixasSemRecorde)
+
+        val faixasAmbos = DashboardCalculator.gerarFaixasLegenda(HeatmapMode.AMBOS, 100, 40)
+        assertEquals("Média dos recordes: 1%–25% · 26%–50% · 51%–75% · 76%+", faixasAmbos)
+    }
 }

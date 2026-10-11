@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import com.example.burpeelog.ui.components.BurpeeHistoryLineChart
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -157,6 +158,15 @@ fun HistoryScreen(
                 totalNavySeal = uiState.totalNavySeal,
                 onFiltroChange = { viewModel.definirFiltro(it) }
             )
+
+            // Gráfico de linha com reps feitas por sessão (Six-Count e Navy Seal, filtrável 30d, 90d, tudo)
+            if (uiState.todasSessoes.isNotEmpty()) {
+                BurpeeHistoryLineChart(
+                    sessoes = uiState.todasSessoes,
+                    periodoSelecionado = uiState.periodoGrafico,
+                    onPeriodoChange = { viewModel.definirPeriodoGrafico(it) }
+                )
+            }
 
             // Lista de Sessões ou Estado Vazio
             if (uiState.sessoes.isEmpty()) {

@@ -1,6 +1,12 @@
 package com.example.burpeelog.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -132,6 +138,30 @@ private fun WorkoutConfigContent(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var editingIndexForDialog by remember { mutableStateOf<Int?>(null) }
+    val context = LocalContext.current
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // Inicia o treino independente da resposta para nunca bloquear o usuário
+        viewModel.iniciarTreino()
+        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
+    }
+
+    fun dispararInicioTreino() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val temPermissao = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!temPermissao) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        viewModel.iniciarTreino()
+        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
+    }
 
     Scaffold(
         modifier = modifier
@@ -173,10 +203,7 @@ private fun WorkoutConfigContent(
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Button(
-                        onClick = {
-                            viewModel.iniciarTreino()
-                            onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
-                        },
+                        onClick = { dispararInicioTreino() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
