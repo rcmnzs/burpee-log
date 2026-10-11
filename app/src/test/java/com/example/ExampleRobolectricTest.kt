@@ -9,6 +9,8 @@ import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
 import com.example.burpeelog.data.preferences.PatternPreferences
 import com.example.burpeelog.data.repository.SessaoRepositoryImpl
+import com.example.burpeelog.service.WorkoutPhase
+import com.example.burpeelog.service.WorkoutSessionManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -114,5 +116,22 @@ class ExampleRobolectricTest {
 
         assertEquals(listOf(30, 20), prefs.getPadraoParaTipo(TipoExercicio.SIX_COUNT))
         assertEquals(listOf(40, 30), prefs.getPadraoParaTipo(TipoExercicio.NAVY_SEAL))
+    }
+
+    @Test
+    fun `WorkoutSessionManager inicia contagem e gerencia estados`() {
+        val manager = WorkoutSessionManager(context)
+
+        assertEquals(WorkoutPhase.IDLE, manager.state.value.phase)
+
+        manager.startWorkout(TipoExercicio.SIX_COUNT, listOf(30, 20))
+        assertEquals(WorkoutPhase.COUNTDOWN, manager.state.value.phase)
+        assertEquals(50, manager.state.value.totalRepsPrevistas)
+
+        manager.stopWorkout(savePartial = true)
+        assertEquals(WorkoutPhase.STOPPED_EARLY, manager.state.value.phase)
+
+        manager.reset()
+        assertEquals(WorkoutPhase.IDLE, manager.state.value.phase)
     }
 }

@@ -1,6 +1,5 @@
 package com.example.burpeelog.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,11 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Timer
@@ -39,10 +35,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -62,12 +56,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -76,10 +68,57 @@ import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
 import com.example.burpeelog.data.model.TipoExercicio
 import com.example.burpeelog.domain.IntervaloCalculator
+import com.example.burpeelog.service.WorkoutPhase
+
+@Composable
+fun WorkoutScreen(
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val app = context.applicationContext as BurpeeLogApplication
+    val sessionManager = app.workoutSessionManager
+    val activeState by sessionManager.state.collectAsStateWithLifecycle()
+
+    when (activeState.phase) {
+        WorkoutPhase.COUNTDOWN, WorkoutPhase.RUNNING, WorkoutPhase.PAUSED -> {
+            WorkoutActiveScreen(
+                onNavigateToSummary = { repsFeitas, repsPrevistas, duracaoSegundos, tipo, padrao ->
+                    // O sessionManager transiciona para FINISHED ou STOPPED_EARLY
+                },
+                onCancelWorkout = {
+                    sessionManager.reset()
+                },
+                modifier = modifier
+            )
+        }
+        WorkoutPhase.FINISHED, WorkoutPhase.STOPPED_EARLY -> {
+            WorkoutSummaryScreen(
+                tipo = activeState.tipo,
+                padrao = activeState.padrao,
+                repsFeitasInicial = activeState.repsCompletadas,
+                repsPrevistas = activeState.totalRepsPrevistas,
+                duracaoSegundos = activeState.elapsedSeconds,
+                onFinish = {
+                    sessionManager.reset()
+                },
+                modifier = modifier
+            )
+        }
+        WorkoutPhase.IDLE -> {
+            WorkoutConfigContent(
+                onIniciarTreino = { tipo, padrao ->
+                    sessionManager.startWorkout(tipo, padrao)
+                },
+                modifier = modifier
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkoutScreen(
+private fun WorkoutConfigContent(
+    onIniciarTreino: (TipoExercicio, List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkoutConfigViewModel = run {
         val app = LocalContext.current.applicationContext as BurpeeLogApplication
@@ -134,7 +173,10 @@ fun WorkoutScreen(
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.iniciarTreino() },
+                        onClick = {
+                            viewModel.iniciarTreino()
+                            onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
@@ -246,7 +288,6 @@ fun WorkoutScreen(
                 )
             }
 
-            // Espaçamento final para rolagem suave
             item {
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -266,52 +307,6 @@ fun WorkoutScreen(
                 onDismiss = { editingIndexForDialog = null }
             )
         }
-    }
-
-    // Diálogo informativo ao clicar em "Iniciar"
-    if (uiState.sessaoIniciadaDialog) {
-        AlertDialog(
-            onDismissRequest = { viewModel.fecharDialogIniciar() },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Sessão Configurada!",
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Tipo: ${uiState.tipoSelecionado.titulo}",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(text = "Duração: $DURACAO_MINUTOS minutos (fixo)")
-                    Text(text = "Meta de Repetições: ${uiState.repsPrevistas} reps")
-                    Text(text = "Padrão de Intervalos: ${uiState.padraoIntervalos.joinToString("s, ")}s")
-                    Text(
-                        text = "Configuração salva com sucesso para este tipo de exercício.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { viewModel.fecharDialogIniciar() },
-                    modifier = Modifier.testTag("btn_confirmar_dialog_iniciar")
-                ) {
-                    Text("OK, Pronto!")
-                }
-            }
-        )
     }
 }
 
@@ -631,7 +626,6 @@ private fun ItemIntervaloCard(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Linha superior: Identificação do minuto e controles de reordenação / exclusão
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -667,7 +661,6 @@ private fun ItemIntervaloCard(
                     }
                 }
 
-                // Ações: Mover cima, Mover baixo, Remover
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         onClick = onMoverParaCima,
@@ -713,13 +706,11 @@ private fun ItemIntervaloCard(
                 }
             }
 
-            // Linha inferior: Ajustador de intervalo em segundos
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Botões de decremento (-5, -1)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     FilledTonalButton(
                         onClick = { onAlterarIntervalo(intervaloSegundos - 5) },
@@ -740,7 +731,6 @@ private fun ItemIntervaloCard(
                     }
                 }
 
-                // Indicador central clicável para digitação manual direta
                 Surface(
                     onClick = onAbrirEdicaoManual,
                     shape = RoundedCornerShape(10.dp),
@@ -768,7 +758,6 @@ private fun ItemIntervaloCard(
                     }
                 }
 
-                // Botões de incremento (+1, +5)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     FilledTonalButton(
                         onClick = { onAlterarIntervalo(intervaloSegundos + 1) },
@@ -793,9 +782,6 @@ private fun ItemIntervaloCard(
     }
 }
 
-/**
- * Diálogo para digitar diretamente o valor de segundos (entre 2 e 60) ou escolher presets.
- */
 @Composable
 private fun DialogAjusteSegundos(
     minutoNumero: Int,

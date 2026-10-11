@@ -12,4 +12,7 @@ class BurpeeLogApplication : Application() {
     val patternPreferences: com.example.burpeelog.data.preferences.PatternPreferences by lazy {
         com.example.burpeelog.data.preferences.PatternPreferences(this)
     }
+    val workoutSessionManager: com.example.burpeelog.service.WorkoutSessionManager by lazy {
+        com.example.burpeelog.service.WorkoutSessionManager(this)
+    }
 }
