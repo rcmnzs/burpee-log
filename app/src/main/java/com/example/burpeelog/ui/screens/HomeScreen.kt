@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
@@ -33,6 +34,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -88,6 +90,7 @@ private val HeatmapLevel4 = Color(0xFF39D353) // Acima de 75% do recorde
 @Composable
 fun HomeScreen(
     onIniciarTreino: () -> Unit = {},
+    onAbrirDados: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -149,6 +152,18 @@ fun HomeScreen(
                             text = "Busy Dad Program • Dashboard",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = onAbrirDados,
+                        modifier = Modifier.testTag("btn_abrir_dados")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configurações e Dados",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
@@ -642,7 +657,7 @@ private fun HeatmapGrid(
                             .width(14.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (deveMostrarMes && mesNome != null) {
+                        if (deveMostrarMes) {
                             Text(
                                 text = mesNome,
                                 fontSize = 9.sp,

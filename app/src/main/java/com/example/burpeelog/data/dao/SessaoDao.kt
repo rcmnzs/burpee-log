@@ -43,6 +43,11 @@ interface SessaoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(sessoes: List<Sessao>): List<Long>
 
+    @androidx.room.Transaction
+    suspend fun importarSessoesEmTransacao(sessoes: List<Sessao>): List<Long> {
+        return insertAll(sessoes)
+    }
+
     @Update
     suspend fun updateSessao(sessao: Sessao)
 

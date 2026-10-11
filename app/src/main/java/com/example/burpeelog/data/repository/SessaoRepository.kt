@@ -18,6 +18,7 @@ interface SessaoRepository {
 
     suspend fun insert(sessao: Sessao): Long
     suspend fun insertAll(sessoes: List<Sessao>): List<Long>
+    suspend fun importarSessoes(sessoes: List<Sessao>): List<Long>
     suspend fun update(sessao: Sessao)
     suspend fun delete(sessao: Sessao)
     suspend fun deleteById(id: Long)
@@ -54,6 +55,9 @@ class SessaoRepositoryImpl(
 
     override suspend fun insertAll(sessoes: List<Sessao>): List<Long> =
         sessaoDao.insertAll(sessoes)
+
+    override suspend fun importarSessoes(sessoes: List<Sessao>): List<Long> =
+        sessaoDao.importarSessoesEmTransacao(sessoes)
 
     override suspend fun update(sessao: Sessao) =
         sessaoDao.updateSessao(sessao)
