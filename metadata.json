@@ -1,0 +1,6 @@
+{
+  "name": "Burpee Log",
+  "description": "Registro de treinos do Busy Dad Program com sessões de 20 minutos de Six-Count e Navy Seal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
