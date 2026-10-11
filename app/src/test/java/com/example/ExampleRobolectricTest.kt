@@ -16,6 +16,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,6 +78,50 @@ class ExampleRobolectricTest {
     }
 
     @Test
+    fun `update and delete sessao in room`() = runTest {
+        val dao = database.sessaoDao()
+        val repository = SessaoRepositoryImpl(dao)
+
+        val sessao = Sessao(
+            tipo = TipoExercicio.SIX_COUNT,
+            repsFeitas = 40,
+            importada = true
+        )
+        val id = repository.insert(sessao)
+        val inserida = repository.getSessaoById(id).first()!!
+        assertTrue(inserida.importada)
+
+        // Atualizar
+        val atualizada = inserida.copy(repsFeitas = 45, observacao = "Editado")
+        repository.update(atualizada)
+
+        val recarregada = repository.getSessaoById(id).first()
+        assertEquals(45, recarregada?.repsFeitas)
+        assertEquals("Editado", recarregada?.observacao)
+
+        // Excluir
+        repository.delete(recarregada!!)
+        val deletada = repository.getSessaoById(id).first()
+        assertNull(deletada)
+    }
+
+    @Test
+    fun `filter sessoes by tipo`() = runTest {
+        val dao = database.sessaoDao()
+        val repository = SessaoRepositoryImpl(dao)
+
+        repository.insert(Sessao(tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50))
+        repository.insert(Sessao(tipo = TipoExercicio.SIX_COUNT, repsFeitas = 60))
+        repository.insert(Sessao(tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30))
+
+        val sixCounts = repository.getSessoesByTipo(TipoExercicio.SIX_COUNT).first()
+        val navySeals = repository.getSessoesByTipo(TipoExercicio.NAVY_SEAL).first()
+
+        assertEquals(2, sixCounts.size)
+        assertEquals(1, navySeals.size)
+    }
+
+    @Test
     fun `getUltimaSessao retorna a sessao mais recente e permite sugerir alternancia`() = runTest {
         val dao = database.sessaoDao()
         val repository = SessaoRepositoryImpl(dao)
@@ -98,7 +144,6 @@ class ExampleRobolectricTest {
         assertNotNull(ultima)
         assertEquals(TipoExercicio.NAVY_SEAL, ultima?.tipo)
 
-        // Se a última foi NAVY_SEAL, a próxima deve sugerir SIX_COUNT
         val proximoSugerido = if (ultima?.tipo == TipoExercicio.SIX_COUNT) {
             TipoExercicio.NAVY_SEAL
         } else {

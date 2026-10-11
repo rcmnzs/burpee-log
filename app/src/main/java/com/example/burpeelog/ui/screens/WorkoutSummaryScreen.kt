@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,11 +81,13 @@ fun WorkoutSummaryScreen(
     val repository = app.repository
     val scope = rememberCoroutineScope()
 
-    var repsFeitas by remember { mutableIntStateOf(repsFeitasInicial) }
+    // Regra: campo editável de reps feitas com padrão = reps previstas
+    var repsFeitasTexto by remember { mutableStateOf(repsPrevistas.toString()) }
     var observacao by remember { mutableStateOf("") }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
 
+    val repsFeitasNumero = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
     val isCompleto = duracaoSegundos >= (DURACAO_MINUTOS * 60)
     val minutos = duracaoSegundos / 60
     val segundos = duracaoSegundos % 60
@@ -153,7 +157,7 @@ fun WorkoutSummaryScreen(
                                         tipo = tipo,
                                         padraoIntervalosSegundos = padrao,
                                         repsPrevistas = repsPrevistas,
-                                        repsFeitas = repsFeitas,
+                                        repsFeitas = repsFeitasNumero,
                                         observacao = observacao.trim().ifEmpty { null },
                                         importada = false
                                     )
@@ -163,7 +167,7 @@ fun WorkoutSummaryScreen(
                                 }
                             }
                         },
-                        enabled = !isSaving,
+                        enabled = !isSaving && repsFeitasNumero >= 0,
                         modifier = Modifier
                             .weight(1.5f)
                             .height(54.dp)
@@ -198,7 +202,7 @@ fun WorkoutSummaryScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Card de Conquista / Status
+            // Card de Status do Treino
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,7 +236,7 @@ fun WorkoutSummaryScreen(
                     }
 
                     Text(
-                        text = if (isCompleto) "Treino Completo Concluído!" else "Treino Parcial Encerrado",
+                        text = if (isCompleto) "Treino Completo Concluído!" else "Treino Parcial Finalizado",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -246,7 +250,8 @@ fun WorkoutSummaryScreen(
                             text = tipo.titulo,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.testTag("txt_summary_tipo")
                         )
                         Text(
                             text = "•",
@@ -261,7 +266,7 @@ fun WorkoutSummaryScreen(
                 }
             }
 
-            // Card com ajuste de Repetições Feitas
+            // Card com Reps Previstas e Campo Editável de Reps Feitas
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -273,55 +278,85 @@ fun WorkoutSummaryScreen(
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Repetições Previstas:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "$repsPrevistas reps",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.testTag("txt_summary_reps_previstas")
+                        )
+                    }
+
                     Text(
                         text = "REPETIÇÕES FEITAS",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        letterSpacing = 2.sp
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
+                    // Campo editável de reps feitas com botões rápidos de incremento/decremento
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         FilledTonalIconButton(
-                            onClick = { if (repsFeitas > 0) repsFeitas-- },
+                            onClick = {
+                                val atual = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
+                                if (atual > 0) repsFeitasTexto = (atual - 1).toString()
+                            },
                             modifier = Modifier.testTag("btn_reps_minus")
                         ) {
-                            Icon(imageVector = Icons.Default.Remove, contentDescription = "Diminuir reps")
+                            Icon(imageVector = Icons.Default.Remove, contentDescription = "Diminuir 1 rep")
                         }
 
-                        Text(
-                            text = "$repsFeitas",
-                            fontSize = 64.sp,
-                            fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.primary,
+                        OutlinedTextField(
+                            value = repsFeitasTexto,
+                            onValueChange = { novo ->
+                                repsFeitasTexto = novo.filter { it.isDigit() }
+                            },
+                            label = { Text("Reps Feitas") },
+                            placeholder = { Text("$repsPrevistas") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
                             modifier = Modifier
-                                .padding(horizontal = 24.dp)
-                                .testTag("txt_reps_feitas_summary")
+                                .weight(1f)
+                                .testTag("input_reps_feitas_summary"),
+                            shape = RoundedCornerShape(12.dp)
                         )
 
                         FilledTonalIconButton(
-                            onClick = { repsFeitas++ },
+                            onClick = {
+                                val atual = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
+                                repsFeitasTexto = (atual + 1).toString()
+                            },
                             modifier = Modifier.testTag("btn_reps_plus")
                         ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Aumentar reps")
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Aumentar 1 rep")
                         }
                     }
 
                     Text(
-                        text = "Meta prevista: $repsPrevistas reps",
+                        text = "Padrão inicial preenchido com as repetições previstas ($repsPrevistas reps). Altere se necessário.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            // Detalhes do padrão de intervalos
+            // Detalhes da Sessão
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -343,6 +378,22 @@ fun WorkoutSummaryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
+                            text = "Exercício:",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = tipo.titulo,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
                             text = "Padrão de intervalos:",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
@@ -359,7 +410,7 @@ fun WorkoutSummaryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Duração oficial do Busy Dad:",
+                            text = "Duração oficial Busy Dad:",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -373,11 +424,11 @@ fun WorkoutSummaryScreen(
                 }
             }
 
-            // Campo de Observações
+            // Campo de Observações Opcional
             OutlinedTextField(
                 value = observacao,
                 onValueChange = { observacao = it },
-                label = { Text("Observações (opcional)") },
+                label = { Text("Observação (opcional)") },
                 placeholder = { Text("Ex.: Bom ritmo, treino em jejum, 10 reps a mais") },
                 modifier = Modifier
                     .fillMaxWidth()
