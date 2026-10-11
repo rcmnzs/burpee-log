@@ -73,7 +73,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(innerPadding)
         ) { tab ->
             when (tab) {
-                NavTab.INICIO -> HomeScreen()
+                NavTab.INICIO -> HomeScreen(onIniciarTreino = { selectedTab = NavTab.TREINO })
                 NavTab.TREINO -> WorkoutScreen()
                 NavTab.HISTORICO -> HistoryScreen()
             }
