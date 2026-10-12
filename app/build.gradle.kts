@@ -1,4 +1,6 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -17,7 +19,7 @@ android {
     minSdk = 24
     targetSdk = 36
     versionCode = 1
-    versionName = "1.0"
+    versionName = "1.0.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -26,11 +28,28 @@ android {
   // and updating Android apps in AI Studio.
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val keystorePropertiesFile = rootProject.file("keystore.properties")
+      val keystoreProperties = Properties()
+      if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+      }
+
+      val keystorePath = System.getenv("KEYSTORE_PATH")
+        ?: keystoreProperties.getProperty("KEYSTORE_PATH")
+      val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
+        ?: System.getenv("STORE_PASSWORD")
+        ?: keystoreProperties.getProperty("KEYSTORE_PASSWORD")
+      val keyAliasVal = System.getenv("KEY_ALIAS")
+        ?: keystoreProperties.getProperty("KEY_ALIAS")
+      val keyPasswordVal = System.getenv("KEY_PASSWORD")
+        ?: keystoreProperties.getProperty("KEY_PASSWORD")
+
+      if (!keystorePath.isNullOrEmpty() && file(keystorePath).exists()) {
+        storeFile = file(keystorePath)
+        storePassword = keystorePassword
+        keyAlias = keyAliasVal
+        keyPassword = keyPasswordVal
+      }
     }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
@@ -48,7 +67,11 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in
       // AI Studio.
-      signingConfig = signingConfigs.getByName("release")
+      signingConfig = if (signingConfigs.getByName("release").storeFile != null) {
+        signingConfigs.getByName("release")
+      } else {
+        null
+      }
     }
     debug {
       // Do not remove or modify this signingConfig assignment. It is necessary for Android apps in

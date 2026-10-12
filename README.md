@@ -44,10 +44,11 @@ data,six-counts,navyseals
 
 O projeto é **open source**. Qualquer pessoa pode instalar e testar.
 
-**Opção 1: instalar o APK**
-1. Acesse a página de [Releases](https://github.com/rcmenezes1998/burpee-log/releases) e baixe o arquivo `.apk` mais recente (versão 1.0).
-2. No Android, permita a instalação de apps de fontes desconhecidas para o navegador ou gerenciador de arquivos usado.
-3. Abra o APK baixado e instale.
+**Opção 1: instalar o APK (recomendado)**
+1. Acesse a página de [Releases](https://github.com/rcmenezes1998/burpee-log/releases) e baixe o arquivo `.apk` da versão mais recente (ex.: `BurpeeLog-v1.0.0.apk`).
+2. No Android, autorize a instalação de apps de fontes desconhecidas caso solicitado pelo navegador ou gerenciador de arquivos.
+3. Abra o APK baixado e confirme a instalação.
+4. **Como atualizar:** Para atualizar para uma nova versão, baixe o APK mais recente na página de Releases e instale diretamente por cima do aplicativo atual. Se ambas as versões forem assinadas com a mesma chave (o que acontece automaticamente nas releases oficiais), o sistema Android atualizará o app mantendo todo o seu histórico de treinos e configurações intactos.
 
 **Opção 2: compilar o código**
 1. Instale o [Android Studio](https://developer.android.com/studio).
