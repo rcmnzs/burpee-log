@@ -9,7 +9,7 @@ Este documento descreve as diretrizes de segurança, o modelo de ameaças e o pr
 O **Burpee Log** é um aplicativo Android desenvolvido em Kotlin e Jetpack Compose, voltado para registro de treinos dos métodos *Six-Count* e *Navy Seal* do programa *Busy Dad Training*.
 
 ### Características Principais de Arquitetura:
-- **100% Offline:** O aplicativo não requer nem solicita permissão de rede (`android.permission.INTERNET`). Não há servidores, endpoints remotos, telemetria de terceiros nem comunicação com nuvem.
+- **100% Offline:** O aplicativo não requer nem solicita permissão de rede (`android.permission.INTERNET`). Não há servidores, endpoints remotos, telemetria de terceiros, Firebase nem comunicação com nuvem. Plugins e dependências do Google Services / Firebase foram totalmente removidos do projeto.
 - **Armazenamento Estritamente Local:** Todos os dados de treinos são persistidos no banco de dados local Room (`burpee_log.db`), localizado no diretório interno seguro da aplicação (`MODE_PRIVATE`), isolado pela sandbox do Android (Linux UID separation) e criptografado por hardware via File-Based Encryption (FBE) nativo do Android.
 - **Sem Autenticação Externa:** Não são mantidas credenciais, senhas, chaves de API nem tokens de sessão.
 - **Exportação e Compartilhamento Controlados:** Arquivos CSV gerados para exportação são gravados exclusivamente no subdiretório isolado de cache `csv_exports/` e compartilhados via `FileProvider` restrito, com permissões temporárias de leitura (`FLAG_GRANT_READ_URI_PERMISSION`).
