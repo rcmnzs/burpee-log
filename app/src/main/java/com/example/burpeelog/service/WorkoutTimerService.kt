@@ -35,10 +35,15 @@ class WorkoutTimerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent == null || intent.action == null) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         val app = application as? BurpeeLogApplication
         val sessionManager = app?.workoutSessionManager
 
-        when (intent?.action) {
+        when (intent.action) {
             ACTION_STOP -> {
                 sessionManager?.stopWorkout(savePartial = true)
                 pararForeground()
@@ -66,9 +71,13 @@ class WorkoutTimerService : Service() {
                 val notificacao = criarNotificacao("20:00", 0, 0, "Burpee Log", false)
                 startForeground(NOTIFICATION_ID, notificacao)
             }
+            else -> {
+                stopSelf()
+                return START_NOT_STICKY
+            }
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun criarCanalNotificacao() {

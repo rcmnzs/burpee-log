@@ -133,4 +133,74 @@ class CsvManagerTest {
         assertTrue(csv.contains("11/10/2026,50,30"))
         assertTrue(csv.contains("12/10/2026,45,0"))
     }
+
+    @Test
+    fun `neutralizarFormulaCsv neutraliza formulas que comecam com igual, mais, menos, arroba e tabulacao`() {
+        assertEquals("'=cmd|' /C calc'!A0", CsvManager.neutralizarFormulaCsv("=cmd|' /C calc'!A0"))
+        assertEquals("'+123", CsvManager.neutralizarFormulaCsv("+123"))
+        assertEquals("'-456", CsvManager.neutralizarFormulaCsv("-456"))
+        assertEquals("'@SUM(A1:A5)", CsvManager.neutralizarFormulaCsv("@SUM(A1:A5)"))
+        assertEquals("'\tmalicious", CsvManager.neutralizarFormulaCsv("\tmalicious"))
+        assertEquals("10/10/2026", CsvManager.neutralizarFormulaCsv("10/10/2026"))
+        assertEquals("50", CsvManager.neutralizarFormulaCsv("50"))
+    }
+
+    @Test
+    fun `rejeita numeros negativos e relata erro com o numero da linha`() {
+        val csv = """
+            Data,Six-Counts,Navy Seals
+            11/10/2026,-15,30
+        """.trimIndent()
+
+        val preview = CsvManager.processarCsvImportacao(csv, emptyList())
+        assertEquals(1, preview.totalLinhasLidas)
+        assertEquals(1, preview.erros.size)
+        assertEquals(2, preview.erros[0].numeroLinha)
+        assertTrue(preview.erros[0].mensagem.contains("negativo"))
+        assertEquals(0, preview.totalSessoesCriadas)
+    }
+
+    @Test
+    fun `rejeita repeticoes absurdas acima de 5000 e relata erro`() {
+        val csv = """
+            Data,Six-Counts,Navy Seals
+            11/10/2026,99999,30
+        """.trimIndent()
+
+        val preview = CsvManager.processarCsvImportacao(csv, emptyList())
+        assertEquals(1, preview.totalLinhasLidas)
+        assertEquals(1, preview.erros.size)
+        assertEquals(2, preview.erros[0].numeroLinha)
+        assertTrue(preview.erros[0].mensagem.contains("excede limite"))
+        assertEquals(0, preview.totalSessoesCriadas)
+    }
+
+    @Test
+    fun `rejeita datas com ano muito antigo ou no futuro distante`() {
+        val csv = """
+            Data,Six-Counts,Navy Seals
+            11/10/1980,50,30
+            11/10/2099,50,30
+        """.trimIndent()
+
+        val preview = CsvManager.processarCsvImportacao(csv, emptyList())
+        assertEquals(2, preview.totalLinhasLidas)
+        assertEquals(2, preview.erros.size)
+        assertTrue(preview.erros[0].mensagem.contains("fora do intervalo"))
+        assertTrue(preview.erros[1].mensagem.contains("fora do intervalo"))
+        assertEquals(0, preview.totalSessoesCriadas)
+    }
+
+    @Test
+    fun `rejeita linha com mais de 1000 caracteres`() {
+        val linhaGigante = "11/10/2026," + "9".repeat(1100) + ",10"
+        val csv = """
+            Data,Six-Counts,Navy Seals
+            $linhaGigante
+        """.trimIndent()
+
+        val preview = CsvManager.processarCsvImportacao(csv, emptyList())
+        assertEquals(1, preview.erros.size)
+        assertTrue(preview.erros[0].mensagem.contains("tamanho máximo"))
+    }
 }

@@ -555,7 +555,7 @@ private fun DialogEditarSessao(
     var repsTexto by remember { mutableStateOf(sessao.repsFeitas.toString()) }
     var observacao by remember { mutableStateOf(sessao.observacao ?: "") }
 
-    val repsValidas = repsTexto.toIntOrNull()?.let { it > 0 } == true
+    val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -591,7 +591,7 @@ private fun DialogEditarSessao(
                 // Campo Reps Feitas
                 OutlinedTextField(
                     value = repsTexto,
-                    onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() } },
+                    onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() }.take(4) },
                     label = { Text("Repetições Feitas") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -604,7 +604,7 @@ private fun DialogEditarSessao(
                 // Campo Observação
                 OutlinedTextField(
                     value = observacao,
-                    onValueChange = { observacao = it },
+                    onValueChange = { observacao = it.take(500) },
                     label = { Text("Observação (opcional)") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -658,7 +658,7 @@ private fun DialogAdicionarSessaoPassada(
         calendar.timeInMillis
     }
 
-    val repsValidas = repsTexto.toIntOrNull()?.let { it > 0 } == true
+    val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -742,7 +742,7 @@ private fun DialogAdicionarSessaoPassada(
                 // Campo Reps Feitas
                 OutlinedTextField(
                     value = repsTexto,
-                    onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() } },
+                    onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() }.take(4) },
                     label = { Text("Repetições Feitas *") },
                     placeholder = { Text("Ex.: 45") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -756,7 +756,7 @@ private fun DialogAdicionarSessaoPassada(
                 // Campo Observação
                 OutlinedTextField(
                     value = observacao,
-                    onValueChange = { observacao = it },
+                    onValueChange = { observacao = it.take(500) },
                     label = { Text("Observação (opcional)") },
                     placeholder = { Text("Ex.: Treino registrado após o parque") },
                     modifier = Modifier

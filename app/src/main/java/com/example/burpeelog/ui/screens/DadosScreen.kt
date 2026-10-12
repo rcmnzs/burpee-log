@@ -102,17 +102,32 @@ fun DadosScreen(
                 try {
                     val conteudo = withContext(Dispatchers.IO) {
                         context.contentResolver.openInputStream(uri)?.use { stream ->
-                            stream.bufferedReader().readText()
-                        } ?: ""
+                            val maxChars = CsvManager.MAX_CSV_SIZE_BYTES
+                            val buffer = CharArray(4096)
+                            val sb = StringBuilder()
+                            val reader = stream.bufferedReader()
+                            var totalRead = 0
+                            var read: Int
+                            while (reader.read(buffer).also { read = it } != -1) {
+                                totalRead += read
+                                if (totalRead > maxChars) {
+                                    return@use null
+                                }
+                                sb.append(buffer, 0, read)
+                            }
+                            sb.toString()
+                        }
                     }
-                    if (conteudo.isNotBlank()) {
+                    if (conteudo == null) {
+                        Toast.makeText(context, "Arquivo excede o tamanho máximo permitido de 2 MB", Toast.LENGTH_LONG).show()
+                    } else if (conteudo.isNotBlank()) {
                         val preview = CsvManager.processarCsvImportacao(conteudo, todasSessoes)
                         previewImportacao = preview
                     } else {
                         Toast.makeText(context, "Arquivo vazio ou ilegível", Toast.LENGTH_SHORT).show()
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(context, "Erro ao ler o arquivo: ${e.message}", Toast.LENGTH_LONG).show()
+                } catch (_: Exception) {
+                    Toast.makeText(context, "Erro ao ler o arquivo CSV", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -344,8 +359,8 @@ fun DadosScreen(
                                 Toast.LENGTH_LONG
                             ).show()
                             previewImportacao = null
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "Erro ao gravar: ${e.message}", Toast.LENGTH_LONG).show()
+                        } catch (_: Exception) {
+                            Toast.makeText(context, "Erro ao gravar as sessões no banco de dados.", Toast.LENGTH_LONG).show()
                         } finally {
                             isImportando = false
                         }
@@ -530,7 +545,9 @@ private suspend fun exportarECompartilharCsv(
     withContext(Dispatchers.IO) {
         try {
             val conteudoCsv = CsvManager.gerarCsvExportacao(sessoes)
-            val cacheFile = File(context.cacheDir, "burpee_log_export.csv")
+            val exportDir = File(context.cacheDir, "csv_exports").apply { mkdirs() }
+            exportDir.listFiles()?.forEach { it.delete() }
+            val cacheFile = File(exportDir, "burpee_log_export.csv")
             cacheFile.writeText(conteudoCsv)
 
             val uri: Uri = FileProvider.getUriForFile(
@@ -550,9 +567,9 @@ private suspend fun exportarECompartilharCsv(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(chooser)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Erro ao exportar: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Erro ao gerar o arquivo de exportação.", Toast.LENGTH_LONG).show()
             }
         }
     }

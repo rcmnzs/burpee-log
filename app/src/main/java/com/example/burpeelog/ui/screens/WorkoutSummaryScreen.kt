@@ -167,7 +167,7 @@ fun WorkoutSummaryScreen(
                                 }
                             }
                         },
-                        enabled = !isSaving && repsFeitasNumero >= 0,
+                        enabled = !isSaving && repsFeitasNumero in 0..5000,
                         modifier = Modifier
                             .weight(1.5f)
                             .height(54.dp)
@@ -325,7 +325,7 @@ fun WorkoutSummaryScreen(
                         OutlinedTextField(
                             value = repsFeitasTexto,
                             onValueChange = { novo ->
-                                repsFeitasTexto = novo.filter { it.isDigit() }
+                                repsFeitasTexto = novo.filter { it.isDigit() }.take(4)
                             },
                             label = { Text("Reps Feitas") },
                             placeholder = { Text("$repsPrevistas") },
@@ -427,7 +427,7 @@ fun WorkoutSummaryScreen(
             // Campo de Observações Opcional
             OutlinedTextField(
                 value = observacao,
-                onValueChange = { observacao = it },
+                onValueChange = { observacao = it.take(500) },
                 label = { Text("Observação (opcional)") },
                 placeholder = { Text("Ex.: Bom ritmo, treino em jejum, 10 reps a mais") },
                 modifier = Modifier

@@ -31,6 +31,12 @@ data class CsvImportPreview(
 
 object CsvManager {
 
+    const val MAX_CSV_SIZE_BYTES = 2 * 1024 * 1024 // 2 MB limite contra DoS
+    const val MAX_CSV_LINES = 10_000
+    const val MAX_LINE_LENGTH = 1_000
+    const val MAX_REPS_POR_SESSAO = 5_000
+    const val MIN_ANO_VALIDO = 2000
+
     private val DATE_FORMATTERS = listOf(
         DateTimeFormatter.ofPattern("dd/MM/yyyy"),
         DateTimeFormatter.ofPattern("d/M/yyyy"),
@@ -56,15 +62,74 @@ object CsvManager {
     }
 
     /**
+     * Neutraliza caracteres perigosos de injeção de fórmulas CSV (=, +, -, @, \t, \r)
+     * conforme OWASP Mobile / ASVS, prefixando aspa simples (').
+     */
+    fun neutralizarFormulaCsv(valor: String): String {
+        val hasLeadingControlChar = valor.startsWith("\t") || valor.startsWith("\r")
+        val trimmed = valor.trimStart()
+        val startsWithFormula = trimmed.startsWith("=") || trimmed.startsWith("+") ||
+            trimmed.startsWith("-") || trimmed.startsWith("@")
+        return if (hasLeadingControlChar || startsWithFormula) {
+            "'$valor"
+        } else {
+            valor
+        }
+    }
+
+    /**
+     * Valida células numéricas de repetições:
+     * - Células vazias, zero, hífen isolado ou texto não numérico retornam 0 (sem treino).
+     * - Números negativos ou números absurdos (> 5000) geram erro e retornam null.
+     */
+    fun validarReps(raw: String, numeroLinha: Int, tipoNome: String, erros: MutableList<CsvError>): Int? {
+        val clean = raw.trim()
+        if (clean.isEmpty() || clean == "-" || clean.equals("n/a", ignoreCase = true) || clean.equals("null", ignoreCase = true)) {
+            return 0
+        }
+        val parsed = clean.toIntOrNull()
+        if (parsed == null) {
+            // Texto não numérico: significa "não houve treino daquele tipo"
+            return 0
+        }
+        if (parsed < 0) {
+            erros.add(CsvError(numeroLinha, "Valor de repetições negativo não permitido para $tipoNome: '$clean'"))
+            return null
+        }
+        if (parsed > MAX_REPS_POR_SESSAO) {
+            erros.add(CsvError(numeroLinha, "Valor de repetições excede limite razoável ($MAX_REPS_POR_SESSAO) para $tipoNome: '$clean'"))
+            return null
+        }
+        return parsed
+    }
+
+    /**
      * Analisa o conteúdo CSV e gera a prévia completa de importação sem gravar no banco.
+     * Inclui verificações defensivas de tamanho, formato e integridade.
      */
     fun processarCsvImportacao(
         conteudoCsv: String,
         sessoesExistentes: List<Sessao>
     ): CsvImportPreview {
+        if (conteudoCsv.length > MAX_CSV_SIZE_BYTES) {
+            return CsvImportPreview(
+                0, 0, 0, emptyList(),
+                listOf(CsvError(1, "Arquivo CSV excede o tamanho máximo de segurança (2 MB)")),
+                emptyList()
+            )
+        }
+
         val linhasBrutas = conteudoCsv.lines()
         if (linhasBrutas.isEmpty()) {
             return CsvImportPreview(0, 0, 0, emptyList(), listOf(CsvError(1, "Arquivo CSV está vazio")), emptyList())
+        }
+
+        if (linhasBrutas.size > MAX_CSV_LINES) {
+            return CsvImportPreview(
+                0, 0, 0, emptyList(),
+                listOf(CsvError(1, "Arquivo CSV excede o limite máximo de $MAX_CSV_LINES linhas")),
+                emptyList()
+            )
         }
 
         // Encontrar linha de cabeçalho
@@ -123,12 +188,19 @@ object CsvManager {
         var totalLinhasLidas = 0
         var totalDuplicadas = 0
 
+        val dataLimiteFutura = LocalDate.now().plusDays(1)
+
         for (i in (headerIndex + 1) until linhasBrutas.size) {
             val linha = linhasBrutas[i].trim()
             if (linha.isEmpty()) continue
 
             val numeroLinhaAtual = i + 1
             totalLinhasLidas++
+
+            if (linha.length > MAX_LINE_LENGTH) {
+                erros.add(CsvError(numeroLinhaAtual, "Linha excede o tamanho máximo permitido ($MAX_LINE_LENGTH caracteres)"))
+                continue
+            }
 
             val celulas = linha.split(separador).map { it.trim() }
             val maxIdx = maxOf(idxData, idxSix, idxNavy)
@@ -144,8 +216,18 @@ object CsvManager {
                 continue
             }
 
-            val sixCounts = celulas[idxSix].toIntOrNull()?.coerceAtLeast(0) ?: 0
-            val navySeals = celulas[idxNavy].toIntOrNull()?.coerceAtLeast(0) ?: 0
+            if (localDate.year < MIN_ANO_VALIDO || localDate.isAfter(dataLimiteFutura)) {
+                erros.add(CsvError(numeroLinhaAtual, "Data fora do intervalo aceitável (entre $MIN_ANO_VALIDO e hoje): '$rawData'"))
+                continue
+            }
+
+            val sixCounts = validarReps(celulas[idxSix], numeroLinhaAtual, "Six-Counts", erros)
+            val navySeals = validarReps(celulas[idxNavy], numeroLinhaAtual, "Navy Seals", erros)
+
+            // Se houve erro de validação (ex: negativo ou absurdo), aborta a linha
+            if (sixCounts == null || navySeals == null) {
+                continue
+            }
 
             // Se for uma das 5 primeiras linhas lidas, registra na prévia
             if (primeirasLinhas.size < 5) {
@@ -215,6 +297,7 @@ object CsvManager {
     /**
      * Gera o conteúdo CSV para exportação: Data (dd/MM/yyyy), Six-Counts, Navy Seals
      * agrupando as sessões do mesmo dia.
+     * Sanitiza os campos para prevenir injeção de fórmulas CSV.
      */
     fun gerarCsvExportacao(sessoes: List<Sessao>): String {
         val cabecalho = "Data,Six-Counts,Navy Seals\n"
@@ -234,7 +317,10 @@ object CsvManager {
             .sortedByDescending { it.key }
             .joinToString("\n") { (date, reps) ->
                 val dataStr = String.format("%02d/%02d/%04d", date.dayOfMonth, date.monthValue, date.year)
-                "$dataStr,${reps.first},${reps.second}"
+                val dataSanitizada = neutralizarFormulaCsv(dataStr)
+                val sixSanitizado = neutralizarFormulaCsv(reps.first.toString())
+                val navySanitizado = neutralizarFormulaCsv(reps.second.toString())
+                "$dataSanitizada,$sixSanitizado,$navySanitizado"
             }
 
         return cabecalho + linhas
