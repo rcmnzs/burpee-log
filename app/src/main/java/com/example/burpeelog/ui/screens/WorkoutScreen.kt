@@ -45,9 +45,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -126,17 +131,19 @@ fun WorkoutScreen(
 private fun WorkoutConfigContent(
     onIniciarTreino: (TipoExercicio, List<Int>) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: WorkoutConfigViewModel = run {
-        val app = LocalContext.current.applicationContext as BurpeeLogApplication
-        viewModel(
-            factory = WorkoutConfigViewModel.Factory(
-                repository = app.repository,
-                patternPreferences = app.patternPreferences
+    viewModel: WorkoutConfigViewModel? = run {
+        val app = LocalContext.current.applicationContext as? BurpeeLogApplication
+        if (app != null) {
+            viewModel(
+                factory = WorkoutConfigViewModel.Factory(
+                    repository = app.repository,
+                    patternPreferences = app.patternPreferences
+                )
             )
-        )
+        } else null
     }
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = viewModel?.uiState?.collectAsStateWithLifecycle()?.value ?: WorkoutConfigUiState()
     var editingIndexForDialog by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
 
@@ -144,7 +151,7 @@ private fun WorkoutConfigContent(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ ->
         // Inicia o treino independente da resposta para nunca bloquear o usuário
-        viewModel.iniciarTreino()
+        viewModel?.iniciarTreino()
         onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
     }
 
@@ -159,7 +166,7 @@ private fun WorkoutConfigContent(
                 return
             }
         }
-        viewModel.iniciarTreino()
+        viewModel?.iniciarTreino()
         onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
     }
 
@@ -186,7 +193,8 @@ private fun WorkoutConfigContent(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -223,7 +231,9 @@ private fun WorkoutConfigContent(
                         Text(
                             text = "Iniciar (${uiState.repsPrevistas} reps previstas)",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -248,7 +258,7 @@ private fun WorkoutConfigContent(
                     tipoSelecionado = uiState.tipoSelecionado,
                     tipoSugerido = uiState.tipoSugerido,
                     ultimaSessao = uiState.ultimaSessao,
-                    onTipoSelecionado = { viewModel.selecionarTipo(it) }
+                    onTipoSelecionado = { viewModel?.selecionarTipo(it) }
                 )
             }
 
@@ -263,37 +273,39 @@ private fun WorkoutConfigContent(
 
             // 4. Cabeçalho da Lista de Intervalos
             item {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = "Padrão de Intervalos por Minuto",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            text = "Ciclo de ${uiState.padraoIntervalos.size} min (repete até 20 min)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
+                    Text(
+                        text = "Padrão de Intervalos por Minuto",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = "Ciclo de ${uiState.padraoIntervalos.size} min (repete até 20 min)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     OutlinedButton(
-                        onClick = { viewModel.adicionarMinuto() },
-                        modifier = Modifier.testTag("btn_adicionar_minuto"),
+                        onClick = { viewModel?.adicionarMinuto() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_adicionar_minuto"),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Adicionar Minuto")
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Adicionar Minuto",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }
@@ -307,10 +319,10 @@ private fun WorkoutConfigContent(
                     index = index,
                     totalItens = uiState.padraoIntervalos.size,
                     intervaloSegundos = intervaloSegundos,
-                    onAlterarIntervalo = { novoValor -> viewModel.alterarIntervalo(index, novoValor) },
-                    onMoverParaCima = { viewModel.moverMinutoParaCima(index) },
-                    onMoverParaBaixo = { viewModel.moverMinutoParaBaixo(index) },
-                    onRemover = { viewModel.removerMinuto(index) },
+                    onAlterarIntervalo = { novoValor -> viewModel?.alterarIntervalo(index, novoValor) },
+                    onMoverParaCima = { viewModel?.moverMinutoParaCima(index) },
+                    onMoverParaBaixo = { viewModel?.moverMinutoParaBaixo(index) },
+                    onRemover = { viewModel?.removerMinuto(index) },
                     onAbrirEdicaoManual = { editingIndexForDialog = index }
                 )
             }
@@ -328,7 +340,7 @@ private fun WorkoutConfigContent(
                 minutoNumero = idx + 1,
                 valorAtual = uiState.padraoIntervalos[idx],
                 onConfirmar = { novoValor ->
-                    viewModel.alterarIntervalo(idx, novoValor)
+                    viewModel?.alterarIntervalo(idx, novoValor)
                     editingIndexForDialog = null
                 },
                 onDismiss = { editingIndexForDialog = null }
@@ -378,15 +390,27 @@ private fun DuracaoFixaInfoCard() {
                         text = "Duração Fixa: $DURACAO_MINUTOS Minutos",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f, fill = false),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "PADRÃO",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "PADRÃO",
+                            fontSize = 9.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
                 Text(
                     text = "Regra Busy Dad Program: sessões de 20 min sem duração editável.",
@@ -498,21 +522,27 @@ private fun TipoExercicioCard(
                     text = if (tipo == TipoExercicio.SIX_COUNT) "Six-Count" else "Navy Seal",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = if (selecionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    color = if (selecionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f, fill = false),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 if (isSugerido) {
+                    Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .padding(horizontal = 5.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "SUGERIDO",
-                            fontSize = 9.sp,
+                            fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }
@@ -733,75 +763,170 @@ private fun ItemIntervaloCard(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilledTonalButton(
-                        onClick = { onAlterarIntervalo(intervaloSegundos - 5) },
-                        enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
-                        modifier = Modifier.testTag("btn_minus_5_$index"),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("-5s", style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    FilledTonalButton(
-                        onClick = { onAlterarIntervalo(intervaloSegundos - 1) },
-                        enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
-                        modifier = Modifier.testTag("btn_minus_1_$index"),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("-1s", style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-
-                Surface(
-                    onClick = onAbrirEdicaoManual,
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                    modifier = Modifier.testTag("btn_valor_intervalo_$index")
-                ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val canFitInOneRow = maxWidth >= 300.dp
+                if (canFitInOneRow) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "${intervaloSegundos}s",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar valor",
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                        FilledTonalButton(
+                            onClick = { onAlterarIntervalo(intervaloSegundos - 5) },
+                            enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .testTag("btn_minus_5_$index"),
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("-5s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilledTonalButton(
-                        onClick = { onAlterarIntervalo(intervaloSegundos + 1) },
-                        enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
-                        modifier = Modifier.testTag("btn_plus_1_$index"),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("+1s", style = MaterialTheme.typography.labelSmall)
-                    }
+                        FilledTonalButton(
+                            onClick = { onAlterarIntervalo(intervaloSegundos - 1) },
+                            enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .testTag("btn_minus_1_$index"),
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("-1s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
 
-                    FilledTonalButton(
-                        onClick = { onAlterarIntervalo(intervaloSegundos + 5) },
-                        enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
-                        modifier = Modifier.testTag("btn_plus_5_$index"),
-                        shape = RoundedCornerShape(8.dp)
+                        Surface(
+                            onClick = onAbrirEdicaoManual,
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .testTag("btn_valor_intervalo_$index")
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${intervaloSegundos}s",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar valor",
+                                    modifier = Modifier.size(12.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        FilledTonalButton(
+                            onClick = { onAlterarIntervalo(intervaloSegundos + 1) },
+                            enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .testTag("btn_plus_1_$index"),
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("+1s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+
+                        FilledTonalButton(
+                            onClick = { onAlterarIntervalo(intervaloSegundos + 5) },
+                            enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .testTag("btn_plus_5_$index"),
+                            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("+5s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("+5s", style = MaterialTheme.typography.labelSmall)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            FilledTonalButton(
+                                onClick = { onAlterarIntervalo(intervaloSegundos - 5) },
+                                enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
+                                modifier = Modifier.weight(1f).height(40.dp).testTag("btn_minus_5_$index"),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) { Text("-5s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+
+                            Surface(
+                                onClick = onAbrirEdicaoManual,
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+                                modifier = Modifier.weight(1f).height(40.dp).testTag("btn_valor_intervalo_$index")
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${intervaloSegundos}s",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(12.dp))
+                                }
+                            }
+
+                            FilledTonalButton(
+                                onClick = { onAlterarIntervalo(intervaloSegundos + 5) },
+                                enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
+                                modifier = Modifier.weight(1f).height(40.dp).testTag("btn_plus_5_$index"),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) { Text("+5s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            FilledTonalButton(
+                                onClick = { onAlterarIntervalo(intervaloSegundos - 1) },
+                                enabled = intervaloSegundos > IntervaloCalculator.INTERVALO_MIN_SEGUNDOS,
+                                modifier = Modifier.weight(1f).height(40.dp).testTag("btn_minus_1_$index"),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) { Text("-1s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+
+                            FilledTonalButton(
+                                onClick = { onAlterarIntervalo(intervaloSegundos + 1) },
+                                enabled = intervaloSegundos < IntervaloCalculator.INTERVALO_MAX_SEGUNDOS,
+                                modifier = Modifier.weight(1f).height(40.dp).testTag("btn_plus_1_$index"),
+                                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) { Text("+1s", style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        }
                     }
                 }
             }
@@ -902,3 +1027,15 @@ private fun DialogAjusteSegundos(
         }
     )
 }
+
+@Preview(name = "WorkoutScreen - Font 1.5x", fontScale = 1.5f, showBackground = true)
+@Preview(name = "WorkoutScreen - 360dp", widthDp = 360, showBackground = true)
+@Composable
+private fun WorkoutScreenPreview() {
+    MaterialTheme {
+        WorkoutConfigContent(
+            onIniciarTreino = { _, _ -> }
+        )
+    }
+}
+

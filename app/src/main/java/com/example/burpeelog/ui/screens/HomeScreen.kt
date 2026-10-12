@@ -1,6 +1,5 @@
 package com.example.burpeelog.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,12 +9,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +61,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +81,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
+import kotlinx.coroutines.flow.flowOf
 
 // 5 cores do Heatmap em tons de verde (estilo GitHub Dark)
 private val HeatmapLevel0 = Color(0xFF1E222A) // Sem treino / cinza escuro
@@ -94,9 +98,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val app = context.applicationContext as BurpeeLogApplication
-    val repository = app.repository
-    val sessoes by repository.allSessoes.collectAsStateWithLifecycle(emptyList())
+    val app = context.applicationContext as? BurpeeLogApplication
+    val sessoes by (app?.repository?.allSessoes ?: flowOf(emptyList())).collectAsStateWithLifecycle(emptyList())
 
     val hoje = remember { LocalDate.now() }
     val anoAtual = hoje.year
@@ -170,7 +173,8 @@ fun HomeScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -331,7 +335,10 @@ private fun CardMetaSemanal(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -347,20 +354,25 @@ private fun CardMetaSemanal(
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Semana Atual (Seg a Dom)",
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "$minutosSemana / $META_SEMANAL_MINUTOS min ($sessoesSemana de $META_SEMANAL_SESSOES sessões)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "${(progresso * 100).toInt()}%",
                     style = MaterialTheme.typography.titleLarge,
@@ -413,7 +425,9 @@ private fun CardStreak(
                     text = "SEQUÊNCIA",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -421,13 +435,17 @@ private fun CardStreak(
                 text = "$streakSemanas ${if (streakSemanas == 1) "semana" else "semanas"}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             Text(
                 text = "Metas de 80 min seguidas",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -464,7 +482,9 @@ private fun CardTotalAno(
                     text = "TOTAL EM $ano",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -472,13 +492,13 @@ private fun CardTotalAno(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = "$repsSix", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = "$repsSix", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                Column {
-                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = "$repsNavy", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = "$repsNavy", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -507,7 +527,10 @@ private fun CardRecordes(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(32.dp)
@@ -523,28 +546,33 @@ private fun CardRecordes(
                     )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Recordes em 1 Sessão",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Máximo de reps em 20 min",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = if (recordeSix > 0) "$recordeSix reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = if (recordeSix > 0) "$recordeSix reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = if (recordeNavy > 0) "$recordeNavy reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = if (recordeNavy > 0) "$recordeNavy reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -575,11 +603,18 @@ private fun SeletorModoHeatmap(
                     activeContentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text(text = modo.rotulo, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    text = modo.rotulo,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
+
+private val MESES_3_LETRAS = arrayOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
 
 /**
  * Grade do Mapa de Calor com rótulos de dias à esquerda e scroll horizontal
@@ -606,21 +641,25 @@ private fun HeatmapGrid(
     Row(modifier = Modifier.fillMaxWidth()) {
         // Rótulos de dias da semana (Segunda a Domingo) à esquerda
         Column(
-            modifier = Modifier.padding(top = 22.dp, end = 6.dp),
+            modifier = Modifier.padding(top = 21.dp, end = 6.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             val diasRotulos = listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom")
             diasRotulos.forEachIndexed { idx, label ->
                 Box(
-                    modifier = Modifier.size(width = 22.dp, height = 14.dp),
+                    modifier = Modifier.size(width = 28.dp, height = 14.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     if (idx % 2 == 0) { // Mostrar Seg, Qua, Sex, Dom para manter limpo
                         Text(
                             text = label,
                             fontSize = 9.sp,
+                            lineHeight = 9.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Visible
                         )
                     }
                 }
@@ -639,9 +678,9 @@ private fun HeatmapGrid(
 
             semanas.forEachIndexed { _, semana ->
                 val primeiraDataSemana = semana.firstOrNull()?.date
-                val mesNome = primeiraDataSemana?.month?.getDisplayName(TextStyle.SHORT, Locale.forLanguageTag("pt-BR"))?.replaceFirstChar { it.uppercase() }
+                val mesNome = if (primeiraDataSemana != null) MESES_3_LETRAS[primeiraDataSemana.month.ordinal] else ""
 
-                val deveMostrarMes = mesNome != null && mesNome != ultimoMesRotulado && primeiraDataSemana.dayOfMonth <= 7
+                val deveMostrarMes = mesNome.isNotEmpty() && mesNome != ultimoMesRotulado && primeiraDataSemana?.dayOfMonth != null && primeiraDataSemana.dayOfMonth <= 7
                 if (deveMostrarMes) {
                     ultimoMesRotulado = mesNome
                 }
@@ -663,7 +702,10 @@ private fun HeatmapGrid(
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Visible,
+                                modifier = Modifier.wrapContentSize(align = Alignment.CenterStart, unbounded = true)
                             )
                         }
                     }
@@ -747,31 +789,39 @@ private fun DetalhesDiaSelecionadoCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Six-Count: ${dia.repsSixCount} reps",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = if (recordeSix > 0) "$pctSix% do recorde ($recordeSix)" else "Sem recorde",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                         Text(
                             text = "Navy Seal: ${dia.repsNavySeal} reps",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = if (recordeNavy > 0) "$pctNavy% do recorde ($recordeNavy)" else "Sem recorde",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -842,7 +892,9 @@ private fun LegendaHeatmap(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -889,4 +941,13 @@ private fun gerarSemanasHeatmap(
     }
 
     return semanas
+}
+
+@Preview(name = "HomeScreen - Font 1.5x", fontScale = 1.5f, showBackground = true)
+@Preview(name = "HomeScreen - 360dp", widthDp = 360, showBackground = true)
+@Composable
+private fun HomeScreenPreview() {
+    MaterialTheme {
+        HomeScreen()
+    }
 }

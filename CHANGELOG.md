@@ -4,6 +4,17 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.0.1] - 2026-10-12
+
+### Corrigido
+- Correções de layout e ajustes de interface:
+  - **Geral**: Distribuição uniforme de botões e chips com `Modifier.weight(1f)`, `maxLines = 1` e `TextOverflow.Ellipsis`, prevenindo quebras e cortes de texto em telas de 360dp e fontes ampliadas (fontScale 1.3 e 1.5).
+  - **Início**: Alinhamento vertical dos rótulos dos dias (Seg, Qua, Sex, Dom) ao centro das linhas do mapa de calor e exibição dos rótulos de mês em 3 letras (Jan, Fev, Mar, etc.) sem truncar.
+  - **Configurar Sessão**: Botão "Adicionar Minuto" posicionado abaixo do título ocupando a largura inteira e ajuste de segundos com botões de altura e largura uniformes (-5s, -1s, valor, +1s, +5s). Correção do inset/padding no topo do cabeçalho.
+  - **Histórico**: Filtros com mesma altura em uma linha, legenda do gráfico em linha própria abaixo do título, remoção do "+" redundante no cabeçalho mantendo apenas o FAB com padding inferior na lista, remoção do bloco de observação quando ausente e exibição apenas da data em sessões importadas.
+  - **Diálogo Adicionar Sessão Passada**: Chips de data com `FlowRow` e seletor de datas (`DatePicker`), data exibida clicável com texto "Escolher outra data" e estilo idêntico nos chips de Six-Count e Navy Seal.
+  - **Previews**: Adicionados `@Preview` com `fontScale = 1.5f` para as telas principais.
+
 ## [1.0.0] - 2026-10-12
 
 ### Lançamento Inicial

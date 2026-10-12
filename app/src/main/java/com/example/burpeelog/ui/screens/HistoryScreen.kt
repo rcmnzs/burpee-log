@@ -5,8 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,13 +30,14 @@ import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
@@ -40,19 +45,16 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import com.example.burpeelog.ui.components.BurpeeHistoryLineChart
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +67,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -73,21 +77,25 @@ import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
 import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
+import com.example.burpeelog.ui.components.BurpeeHistoryLineChart
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     modifier: Modifier = Modifier,
-    viewModel: HistoryViewModel = run {
-        val app = LocalContext.current.applicationContext as BurpeeLogApplication
-        viewModel(factory = HistoryViewModel.Factory(app.repository))
+    viewModel: HistoryViewModel? = run {
+        val app = LocalContext.current.applicationContext as? BurpeeLogApplication
+        if (app != null) {
+            viewModel(factory = HistoryViewModel.Factory(app.repository))
+        } else null
     }
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState = viewModel?.uiState?.collectAsStateWithLifecycle()?.value ?: HistoryUiState()
 
     var sessaoParaExcluir by remember { mutableStateOf<Sessao?>(null) }
     var sessaoParaEditar by remember { mutableStateOf<Sessao?>(null) }
@@ -113,22 +121,11 @@ fun HistoryScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(
-                        onClick = { showDialogAdicionarPassada = true },
-                        modifier = Modifier.testTag("btn_adicionar_sessao_passada_topbar")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Adicionar treino passado",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -156,7 +153,7 @@ fun HistoryScreen(
                 totalGeral = uiState.totalGeral,
                 totalSixCount = uiState.totalSixCount,
                 totalNavySeal = uiState.totalNavySeal,
-                onFiltroChange = { viewModel.definirFiltro(it) }
+                onFiltroChange = { viewModel?.definirFiltro(it) }
             )
 
             // Gráfico de linha com reps feitas por sessão (Six-Count e Navy Seal, filtrável 30d, 90d, tudo)
@@ -164,7 +161,7 @@ fun HistoryScreen(
                 BurpeeHistoryLineChart(
                     sessoes = uiState.todasSessoes,
                     periodoSelecionado = uiState.periodoGrafico,
-                    onPeriodoChange = { viewModel.definirPeriodoGrafico(it) }
+                    onPeriodoChange = { viewModel?.definirPeriodoGrafico(it) }
                 )
             }
 
@@ -179,6 +176,7 @@ fun HistoryScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .testTag("list_history_sessoes"),
+                    contentPadding = PaddingValues(bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
@@ -191,10 +189,6 @@ fun HistoryScreen(
                             onExcluir = { sessaoParaExcluir = sessao }
                         )
                     }
-
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
-                    }
                 }
             }
         }
@@ -205,7 +199,7 @@ fun HistoryScreen(
         DialogConfirmarExclusao(
             sessao = sessao,
             onConfirmar = {
-                viewModel.excluirSessao(sessao)
+                viewModel?.excluirSessao(sessao)
                 sessaoParaExcluir = null
             },
             onDismiss = { sessaoParaExcluir = null }
@@ -217,7 +211,7 @@ fun HistoryScreen(
         DialogEditarSessao(
             sessao = sessao,
             onSalvar = { sessaoAtualizada ->
-                viewModel.atualizarSessao(sessaoAtualizada)
+                viewModel?.atualizarSessao(sessaoAtualizada)
                 sessaoParaEditar = null
             },
             onDismiss = { sessaoParaEditar = null }
@@ -228,7 +222,7 @@ fun HistoryScreen(
     if (showDialogAdicionarPassada) {
         DialogAdicionarSessaoPassada(
             onAdicionar = { dataHora, tipo, reps, obs ->
-                viewModel.adicionarSessaoPassada(dataHora, tipo, reps, obs)
+                viewModel?.adicionarSessaoPassada(dataHora, tipo, reps, obs)
                 showDialogAdicionarPassada = false
             },
             onDismiss = { showDialogAdicionarPassada = false }
@@ -251,39 +245,69 @@ private fun FiltroTipoBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         FilterChip(
             selected = filtroSelecionado == null,
             onClick = { onFiltroChange(null) },
-            label = { Text("Todos ($totalGeral)") },
+            label = {
+                Text(
+                    text = "Todos ($totalGeral)",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.primary
             ),
-            modifier = Modifier.testTag("chip_filtro_todos")
+            modifier = Modifier
+                .weight(1f)
+                .height(40.dp)
+                .testTag("chip_filtro_todos")
         )
 
         FilterChip(
             selected = filtroSelecionado == TipoExercicio.SIX_COUNT,
             onClick = { onFiltroChange(TipoExercicio.SIX_COUNT) },
-            label = { Text("Six-Count ($totalSixCount)") },
+            label = {
+                Text(
+                    text = "Six-Count ($totalSixCount)",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.primary
             ),
-            modifier = Modifier.testTag("chip_filtro_six_count")
+            modifier = Modifier
+                .weight(1f)
+                .height(40.dp)
+                .testTag("chip_filtro_six_count")
         )
 
         FilterChip(
             selected = filtroSelecionado == TipoExercicio.NAVY_SEAL,
             onClick = { onFiltroChange(TipoExercicio.NAVY_SEAL) },
-            label = { Text("Navy Seal ($totalNavySeal)") },
+            label = {
+                Text(
+                    text = "Navy Seal ($totalNavySeal)",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.primary
             ),
-            modifier = Modifier.testTag("chip_filtro_navy_seal")
+            modifier = Modifier
+                .weight(1f)
+                .height(40.dp)
+                .testTag("chip_filtro_navy_seal")
         )
     }
 }
@@ -297,7 +321,13 @@ private fun SessaoItemCard(
     onEditar: () -> Unit,
     onExcluir: () -> Unit
 ) {
-    val dataFormatada = remember(sessao.dataHora) { formatarDataHora(sessao.dataHora) }
+    val dataFormatada = remember(sessao.dataHora, sessao.importada) {
+        if (sessao.importada) {
+            formatarDataApenas(sessao.dataHora)
+        } else {
+            formatarDataHora(sessao.dataHora)
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -319,6 +349,7 @@ private fun SessaoItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -345,23 +376,28 @@ private fun SessaoItemCard(
                         )
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = sessao.tipo.titulo,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = dataFormatada,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
 
                 // Selo "importada" se aplicável
                 if (sessao.importada) {
+                    Spacer(modifier = Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
@@ -436,7 +472,7 @@ private fun SessaoItemCard(
                 }
             }
 
-            // Observação se houver
+            // Observação se houver (só ocupa espaço se houver observação)
             if (!sessao.observacao.isNullOrBlank()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -467,7 +503,7 @@ private fun SessaoItemCard(
             ) {
                 IconButton(
                     onClick = onEditar,
-                    modifier = Modifier.testTag("btn_editar_sessao_${sessao.id}")
+                    modifier = Modifier.size(36.dp).testTag("btn_editar_sessao_${sessao.id}")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
@@ -479,7 +515,7 @@ private fun SessaoItemCard(
 
                 IconButton(
                     onClick = onExcluir,
-                    modifier = Modifier.testTag("btn_excluir_sessao_${sessao.id}")
+                    modifier = Modifier.size(36.dp).testTag("btn_excluir_sessao_${sessao.id}")
                 ) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
@@ -502,7 +538,9 @@ private fun DialogConfirmarExclusao(
     onConfirmar: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val dataTexto = remember(sessao.dataHora) { formatarDataHora(sessao.dataHora) }
+    val dataTexto = remember(sessao.dataHora, sessao.importada) {
+        if (sessao.importada) formatarDataApenas(sessao.dataHora) else formatarDataHora(sessao.dataHora)
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -564,26 +602,39 @@ private fun DialogEditarSessao(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                // Seletor de tipo
+                // Seletor de tipo estilo chip
                 Text(text = "Tipo de Exercício:", style = MaterialTheme.typography.labelMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    SuggestionChip(
+                    FilterChip(
+                        selected = tipo == TipoExercicio.SIX_COUNT,
                         onClick = { tipo = TipoExercicio.SIX_COUNT },
-                        label = { Text("Six-Count") },
-                        border = if (tipo == TipoExercicio.SIX_COUNT)
-                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        else null,
+                        label = { Text("Six-Count", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        border = BorderStroke(
+                            1.dp,
+                            if (tipo == TipoExercicio.SIX_COUNT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
+                        ),
                         modifier = Modifier.weight(1f)
                     )
-                    SuggestionChip(
+
+                    FilterChip(
+                        selected = tipo == TipoExercicio.NAVY_SEAL,
                         onClick = { tipo = TipoExercicio.NAVY_SEAL },
-                        label = { Text("Navy Seal") },
-                        border = if (tipo == TipoExercicio.NAVY_SEAL)
-                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        else null,
+                        label = { Text("Navy Seal", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        border = BorderStroke(
+                            1.dp,
+                            if (tipo == TipoExercicio.NAVY_SEAL) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
+                        ),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -637,9 +688,16 @@ private fun DialogEditarSessao(
     )
 }
 
+enum class OpcaoDataRelativa(val rotulo: String) {
+    HOJE("Hoje"),
+    ONTEM("Ontem"),
+    OUTRA("Outra data")
+}
+
 /**
  * Diálogo para adicionar manualmente uma sessão passada (data, tipo, reps feitas).
  */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DialogAdicionarSessaoPassada(
     onAdicionar: (dataHora: Long, tipo: TipoExercicio, repsFeitas: Int, observacao: String?) -> Unit,
@@ -649,16 +707,46 @@ private fun DialogAdicionarSessaoPassada(
     var repsTexto by remember { mutableStateOf("") }
     var observacao by remember { mutableStateOf("") }
 
-    // Seleção de data relativa fácil e intuitiva
-    var offsetDias by remember { mutableIntStateOf(0) } // 0 = Hoje, 1 = Ontem, etc.
-
-    val dataHoraEscolhida = remember(offsetDias) {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, -offsetDias)
-        calendar.timeInMillis
-    }
+    var opcaoData by remember { mutableStateOf(OpcaoDataRelativa.HOJE) }
+    var dataHoraEscolhida by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
+
+    // Material3 DatePicker Dialog
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = dataHoraEscolhida
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val utcCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = millis }
+                            val localCal = Calendar.getInstance().apply {
+                                set(utcCal.get(Calendar.YEAR), utcCal.get(Calendar.MONTH), utcCal.get(Calendar.DAY_OF_MONTH), 12, 0, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            dataHoraEscolhida = localCal.timeInMillis
+                            opcaoData = OpcaoDataRelativa.OUTRA
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -669,70 +757,130 @@ private fun DialogAdicionarSessaoPassada(
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 // Seletor de Data
                 Text(text = "Data do Treino:", style = MaterialTheme.typography.labelMedium)
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf(
-                        0 to "Hoje",
-                        1 to "Ontem",
-                        2 to "2 dias atrás",
-                        3 to "3 dias atrás"
-                    ).forEach { (dias, rotulo) ->
-                        SuggestionChip(
-                            onClick = { offsetDias = dias },
-                            label = { Text(rotulo, fontSize = 11.sp) },
-                            border = if (offsetDias == dias)
-                                BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                            else null,
-                            colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = if (offsetDias == dias)
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                                else MaterialTheme.colorScheme.surface
+                    OpcaoDataRelativa.entries.forEach { opcao ->
+                        val isSelected = opcaoData == opcao
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                opcaoData = opcao
+                                if (opcao == OpcaoDataRelativa.HOJE) {
+                                    dataHoraEscolhida = System.currentTimeMillis()
+                                } else if (opcao == OpcaoDataRelativa.ONTEM) {
+                                    val cal = Calendar.getInstance()
+                                    cal.add(Calendar.DAY_OF_YEAR, -1)
+                                    dataHoraEscolhida = cal.timeInMillis
+                                } else if (opcao == OpcaoDataRelativa.OUTRA) {
+                                    showDatePicker = true
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = opcao.rotulo,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
+                            border = BorderStroke(
+                                1.dp,
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            ),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
                 }
 
-                // Data selecionada formatada
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale.forLanguageTag("pt-BR")).format(Date(dataHoraEscolhida)),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                // Data selecionada formatada com acionamento do DatePicker ao tocar
+                Surface(
+                    onClick = { showDatePicker = true },
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("btn_escolher_outra_data")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale.forLanguageTag("pt-BR")).format(Date(dataHoraEscolhida)),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Escolher outra data",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar data",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
 
-                // Seletor de Tipo
+                // Seletor de Tipo com estilo chip e contorno
                 Text(text = "Tipo de Exercício:", style = MaterialTheme.typography.labelMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    SuggestionChip(
+                    FilterChip(
+                        selected = tipo == TipoExercicio.SIX_COUNT,
                         onClick = { tipo = TipoExercicio.SIX_COUNT },
-                        label = { Text("Six-Count") },
-                        border = if (tipo == TipoExercicio.SIX_COUNT)
-                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        else null,
+                        label = { Text("Six-Count", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        border = BorderStroke(
+                            1.dp,
+                            if (tipo == TipoExercicio.SIX_COUNT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
+                        ),
                         modifier = Modifier
                             .weight(1f)
                             .testTag("chip_adicionar_six_count")
                     )
-                    SuggestionChip(
+
+                    FilterChip(
+                        selected = tipo == TipoExercicio.NAVY_SEAL,
                         onClick = { tipo = TipoExercicio.NAVY_SEAL },
-                        label = { Text("Navy Seal") },
-                        border = if (tipo == TipoExercicio.NAVY_SEAL)
-                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-                        else null,
+                        label = { Text("Navy Seal", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        border = BorderStroke(
+                            1.dp,
+                            if (tipo == TipoExercicio.NAVY_SEAL) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
+                        ),
                         modifier = Modifier
                             .weight(1f)
                             .testTag("chip_adicionar_navy_seal")
@@ -858,4 +1006,18 @@ private fun EmptyHistoryView(
 private fun formatarDataHora(timestamp: Long): String {
     val sdf = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.forLanguageTag("pt-BR"))
     return sdf.format(Date(timestamp))
+}
+
+private fun formatarDataApenas(timestamp: Long): String {
+    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("pt-BR"))
+    return sdf.format(Date(timestamp))
+}
+
+@Preview(name = "HistoryScreen - Font 1.5x", fontScale = 1.5f, showBackground = true)
+@Preview(name = "HistoryScreen - 360dp", widthDp = 360, showBackground = true)
+@Composable
+private fun HistoryScreenPreview() {
+    MaterialTheme {
+        HistoryScreen()
+    }
 }
