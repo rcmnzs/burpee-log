@@ -28,7 +28,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew test
+        run: ./gradlew test --no-daemon
 
       - name: Build Release APK
         env:
@@ -44,7 +44,7 @@ jobs:
             export KEYSTORE_PATH="$KEYSTORE_FILE"
           fi
           
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon
 
           if [ -n "$KEYSTORE_FILE" ] && [ -f "$KEYSTORE_FILE" ]; then
             rm -f "$KEYSTORE_FILE"
