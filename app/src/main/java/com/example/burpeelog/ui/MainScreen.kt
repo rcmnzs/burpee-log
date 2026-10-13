@@ -2,6 +2,7 @@ package com.example.burpeelog.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -46,6 +47,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     } else {
         Scaffold(
             modifier = modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 NavigationBar(
                     modifier = Modifier.testTag("bottom_nav_bar"),
@@ -82,7 +84,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Crossfade(
                 targetState = selectedTab,
                 label = "tab_crossfade",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
             ) { tab ->
                 when (tab) {
                     NavTab.INICIO -> HomeScreen(

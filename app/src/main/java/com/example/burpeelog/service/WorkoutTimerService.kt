@@ -17,12 +17,14 @@ import com.example.burpeelog.BurpeeLogApplication
 
 class WorkoutTimerService : Service() {
 
-    private var wakeLock: PowerManager.WakeLock? = null
+    var wakeLock: PowerManager.WakeLock? = null
+        private set
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        activeInstance = this
         criarCanalNotificacao()
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
         wakeLock = powerManager?.newWakeLock(
@@ -152,26 +154,37 @@ class WorkoutTimerService : Service() {
             .build()
     }
 
-    private fun pararForeground() {
+    fun pararForeground() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
             @Suppress("DEPRECATION")
             stopForeground(true)
         }
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+        notificationManager?.cancel(NOTIFICATION_ID)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    fun liberarWakeLock() {
         try {
             if (wakeLock?.isHeld == true) {
                 wakeLock?.release()
             }
         } catch (_: Exception) {}
+        wakeLock = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        activeInstance = null
+        liberarWakeLock()
         pararForeground()
     }
 
     companion object {
+        var activeInstance: WorkoutTimerService? = null
+            private set
+
         const val CHANNEL_ID = "burpee_workout_channel"
         const val NOTIFICATION_ID = 2001
 

@@ -102,13 +102,13 @@ fun WorkoutScreen(
                 modifier = modifier
             )
         }
-        WorkoutPhase.FINISHED, WorkoutPhase.STOPPED_EARLY -> {
+        WorkoutPhase.FINISHED, WorkoutPhase.COMPLETED, WorkoutPhase.STOPPED_EARLY -> {
             WorkoutSummaryScreen(
                 tipo = activeState.tipo,
                 padrao = activeState.padrao,
-                repsFeitasInicial = activeState.repsCompletadas,
+                repsFeitasInicial = activeState.repsFeitasCalculadas.takeIf { it > 0 } ?: activeState.repsCompletadas,
                 repsPrevistas = activeState.totalRepsPrevistas,
-                duracaoSegundos = activeState.elapsedSeconds,
+                duracaoSegundos = activeState.tempoDecorridoSegundos.takeIf { it > 0 } ?: activeState.elapsedSeconds,
                 onFinish = {
                     sessionManager.reset()
                 },

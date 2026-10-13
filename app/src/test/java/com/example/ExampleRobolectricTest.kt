@@ -173,8 +173,25 @@ class ExampleRobolectricTest {
         assertEquals(WorkoutPhase.COUNTDOWN, manager.state.value.phase)
         assertEquals(50, manager.state.value.totalRepsPrevistas)
 
-        manager.stopWorkout(savePartial = true)
+        manager.finalizarSessao(isEarly = true)
         assertEquals(WorkoutPhase.STOPPED_EARLY, manager.state.value.phase)
+        assertEquals(0, manager.state.value.repsFeitasCalculadas)
+
+        manager.reset()
+        assertEquals(WorkoutPhase.IDLE, manager.state.value.phase)
+    }
+
+    @Test
+    fun `WorkoutSessionManager finalizarSessao completa o treino com sucesso`() {
+        val manager = WorkoutSessionManager(context)
+
+        manager.startWorkout(TipoExercicio.SIX_COUNT, listOf(30))
+        assertEquals(WorkoutPhase.COUNTDOWN, manager.state.value.phase)
+
+        manager.finalizarSessao(isEarly = false)
+        assertEquals(WorkoutPhase.COMPLETED, manager.state.value.phase)
+        assertEquals(DURACAO_MINUTOS * 60, manager.state.value.tempoDecorridoSegundos)
+        assertEquals(manager.state.value.repInstants.size, manager.state.value.repsFeitasCalculadas)
 
         manager.reset()
         assertEquals(WorkoutPhase.IDLE, manager.state.value.phase)

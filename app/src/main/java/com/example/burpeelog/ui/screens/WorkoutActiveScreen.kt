@@ -100,11 +100,11 @@ fun WorkoutActiveScreen(
 
     // Ao concluir os 20 minutos, ir automaticamente para a tela de Resumo
     LaunchedEffect(state.phase) {
-        if (state.phase == WorkoutPhase.FINISHED) {
+        if (state.phase == WorkoutPhase.FINISHED || state.phase == WorkoutPhase.COMPLETED) {
             onNavigateToSummary(
-                state.repsCompletadas,
+                state.repsFeitasCalculadas.takeIf { it > 0 } ?: state.repsCompletadas,
                 state.totalRepsPrevistas,
-                state.elapsedSeconds,
+                state.tempoDecorridoSegundos.takeIf { it > 0 } ?: state.elapsedSeconds,
                 state.tipo,
                 state.padrao
             )
@@ -164,7 +164,7 @@ fun WorkoutActiveScreen(
                     // Contagem regressiva de 5 segundos
                     CountdownView(countdown = state.countdownSeconds, tipoTitulo = state.tipo.titulo)
                 }
-                WorkoutPhase.RUNNING, WorkoutPhase.PAUSED, WorkoutPhase.FINISHED, WorkoutPhase.STOPPED_EARLY -> {
+                WorkoutPhase.RUNNING, WorkoutPhase.PAUSED, WorkoutPhase.FINISHED, WorkoutPhase.COMPLETED, WorkoutPhase.STOPPED_EARLY -> {
                     // Tela principal do treino ativo
                     ActiveWorkoutView(
                         state = state,
@@ -231,13 +231,14 @@ fun WorkoutActiveScreen(
                 Button(
                     onClick = {
                         showEncerrarDialog = false
-                        sessionManager.stopWorkout(savePartial = true)
+                        sessionManager.finalizarSessao(isEarly = true)
+                        val finalState = sessionManager.state.value
                         onNavigateToSummary(
-                            state.currentRepDisplay,
-                            state.totalRepsPrevistas,
-                            state.elapsedSeconds,
-                            state.tipo,
-                            state.padrao
+                            finalState.repsFeitasCalculadas,
+                            finalState.totalRepsPrevistas,
+                            finalState.tempoDecorridoSegundos,
+                            finalState.tipo,
+                            finalState.padrao
                         )
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),

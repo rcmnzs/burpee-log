@@ -1,6 +1,9 @@
 package com.example.burpeelog.service
 
+import android.app.Service
 import android.content.Context
+import android.os.Build
+import android.os.PowerManager
 import android.os.SystemClock
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
 import com.example.burpeelog.data.model.TipoExercicio
@@ -23,6 +26,7 @@ enum class WorkoutPhase {
     RUNNING,
     PAUSED,
     FINISHED,
+    COMPLETED,
     STOPPED_EARLY
 }
 
@@ -33,6 +37,7 @@ data class WorkoutActiveState(
     val totalRepsPrevistas: Int = 40,
     val countdownSeconds: Int = 5,
     val elapsedSeconds: Int = 0,
+    val tempoDecorridoSegundos: Int = 0,
     val remainingSeconds: Int = DURACAO_MINUTOS * 60,
     val tempoFormatado: String = "20:00",
     val currentRepIndex: Int = 0, // 0-indexed da rep que acabou de tocar
@@ -42,13 +47,17 @@ data class WorkoutActiveState(
     val currentMinute: Int = 1,
     val progressOverall: Float = 0f,
     val repInstants: List<Int> = emptyList(),
-    val repsCompletadas: Int = 0
+    val repsCompletadas: Int = 0,
+    val repsFeitasCalculadas: Int = 0
 )
 
 class WorkoutSessionManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var tickerJob: Job? = null
+    private var countdownJob: Job? = null
+    private var beepJob: Job? = null
+    private var wakeLock: PowerManager.WakeLock? = null
 
     private val feedbackHelper = WorkoutFeedbackHelper(context)
 
@@ -63,8 +72,17 @@ class WorkoutSessionManager(private val context: Context) {
     private var lastFiredRepIndex: Int = -1
     private var lastFiredMinute: Int = 0
 
+    fun setWakeLock(lock: PowerManager.WakeLock?) {
+        this.wakeLock = lock
+    }
+
     fun startWorkout(tipo: TipoExercicio, padrao: List<Int>) {
         tickerJob?.cancel()
+        tickerJob = null
+        countdownJob?.cancel()
+        countdownJob = null
+        beepJob?.cancel()
+        beepJob = null
 
         val repsPrevistas = IntervaloCalculator.calcularRepsPrevistas(padrao, DURACAO_MINUTOS)
         val instantes = IntervaloCalculator.calcularInstantesDasReps(padrao, DURACAO_MINUTOS)
@@ -80,6 +98,7 @@ class WorkoutSessionManager(private val context: Context) {
             totalRepsPrevistas = repsPrevistas,
             countdownSeconds = 5,
             elapsedSeconds = 0,
+            tempoDecorridoSegundos = 0,
             remainingSeconds = DURACAO_MINUTOS * 60,
             tempoFormatado = "20:00",
             currentRepIndex = 0,
@@ -89,7 +108,8 @@ class WorkoutSessionManager(private val context: Context) {
             currentMinute = 1,
             progressOverall = 0f,
             repInstants = instantes,
-            repsCompletadas = 0
+            repsCompletadas = 0,
+            repsFeitasCalculadas = 0
         )
 
         // Inicia o Foreground Service no Android
@@ -116,7 +136,8 @@ class WorkoutSessionManager(private val context: Context) {
                     countdownSeconds = 0,
                     currentRepIndex = 0,
                     currentRepDisplay = 1,
-                    repsCompletadas = 1
+                    repsCompletadas = 1,
+                    repsFeitasCalculadas = 1
                 )
             }
 
@@ -152,21 +173,8 @@ class WorkoutSessionManager(private val context: Context) {
 
             if (elapsedSeconds >= totalTreinoSegundos) {
                 // Treino concluído com sucesso (20 minutos completos)
-                val totalReps = instantes.size
-                _state.update {
-                    it.copy(
-                        phase = WorkoutPhase.FINISHED,
-                        elapsedSeconds = totalTreinoSegundos,
-                        remainingSeconds = 0,
-                        tempoFormatado = "00:00",
-                        progressOverall = 1f,
-                        repsCompletadas = totalReps,
-                        secondsUntilNextRep = 0,
-                        nextRepProgress = 1f
-                    )
-                }
                 feedbackHelper.playCountdownBeep(isFinal = true)
-                WorkoutTimerService.stopService(context)
+                finalizarSessao(isEarly = false)
                 break
             }
 
@@ -218,11 +226,13 @@ class WorkoutSessionManager(private val context: Context) {
             _state.update {
                 it.copy(
                     elapsedSeconds = elapsedSeconds,
+                    tempoDecorridoSegundos = elapsedSeconds,
                     remainingSeconds = remainingSeconds,
                     tempoFormatado = tempoFormatado,
                     currentRepIndex = lastFiredRepIndex,
                     currentRepDisplay = repAtualDisplay,
                     repsCompletadas = repAtualDisplay,
+                    repsFeitasCalculadas = repAtualDisplay,
                     secondsUntilNextRep = secondsUntilNext,
                     nextRepProgress = nextRepProgress,
                     currentMinute = minutoAtual,
@@ -275,20 +285,165 @@ class WorkoutSessionManager(private val context: Context) {
         )
     }
 
-    fun stopWorkout(savePartial: Boolean) {
+    /**
+     * Finaliza a sessão de treino ativa.
+     * 1. Cancela todos os CoroutineJobs ativos (cronômetro, agendador de bipes, contagem).
+     * 2. Para o foreground service: chama stopForeground(STOP_FOREGROUND_REMOVE) e stopSelf(), removendo a notificação.
+     * 3. Libera qualquer WakeLock ativo se estiver sendo mantido.
+     * 4. Congela dois valores no estado: tempoDecorridoSegundos (tempo total treinado descontando pausas)
+     *    e repsFeitasCalculadas (número de instantes de repetição cujo tempo previsto já passou).
+     * 5. Muda a fase para STOPPED_EARLY se isEarly = true, ou COMPLETED se false.
+     */
+    fun finalizarSessao(isEarly: Boolean) {
+        // 1. Cancela todos os CoroutineJobs ativos
         tickerJob?.cancel()
-        WorkoutTimerService.stopService(context)
+        tickerJob = null
+        countdownJob?.cancel()
+        countdownJob = null
+        beepJob?.cancel()
+        beepJob = null
+
+        // 2. Para o foreground service: chama stopForeground(STOP_FOREGROUND_REMOVE) e stopSelf(), removendo a notificação
+        val serviceInstance = WorkoutTimerService.activeInstance
+        if (serviceInstance != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                serviceInstance.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                serviceInstance.stopForeground(true)
+            }
+            serviceInstance.stopSelf()
+        } else {
+            WorkoutTimerService.stopService(context)
+        }
+
+        // 3. Libera qualquer WakeLock ativo se estiver sendo mantido
+        serviceInstance?.liberarWakeLock()
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+            }
+        } catch (_: Exception) {}
+        wakeLock = null
+
+        // 4. Congela tempoDecorridoSegundos e repsFeitasCalculadas
+        val currentState = _state.value
+        val totalTreinoSegundos = DURACAO_MINUTOS * 60
+
+        val tempoDecorridoSegundos: Int = if (!isEarly) {
+            totalTreinoSegundos
+        } else {
+            when (currentState.phase) {
+                WorkoutPhase.RUNNING -> {
+                    val now = SystemClock.elapsedRealtime()
+                    val activeElapsedMillis = (now - sessionStartRealtime) - totalPausedDurationMillis
+                    (activeElapsedMillis / 1000).toInt().coerceIn(0, totalTreinoSegundos)
+                }
+                WorkoutPhase.PAUSED -> {
+                    val activeElapsedMillis = (pauseStartRealtime - sessionStartRealtime) - totalPausedDurationMillis
+                    (activeElapsedMillis / 1000).toInt().coerceIn(0, totalTreinoSegundos)
+                }
+                WorkoutPhase.COUNTDOWN, WorkoutPhase.IDLE -> 0
+                else -> currentState.elapsedSeconds.coerceIn(0, totalTreinoSegundos)
+            }
+        }
+
+        val instantes = currentState.repInstants
+        val repsFeitasCalculadas: Int = if (!isEarly) {
+            instantes.size
+        } else if (currentState.phase == WorkoutPhase.COUNTDOWN || currentState.phase == WorkoutPhase.IDLE) {
+            0
+        } else {
+            instantes.count { it <= tempoDecorridoSegundos }
+        }
+
+        // 5. Muda a fase para STOPPED_EARLY se isEarly = true, ou COMPLETED se false
+        val novaFase = if (isEarly) WorkoutPhase.STOPPED_EARLY else WorkoutPhase.COMPLETED
+
+        val remainingSecs = (totalTreinoSegundos - tempoDecorridoSegundos).coerceAtLeast(0)
+        val mm = remainingSecs / 60
+        val ss = remainingSecs % 60
+        val tempoFormatado = String.format("%02d:%02d", mm, ss)
 
         _state.update {
             it.copy(
-                phase = if (savePartial) WorkoutPhase.STOPPED_EARLY else WorkoutPhase.IDLE
+                phase = novaFase,
+                tempoDecorridoSegundos = tempoDecorridoSegundos,
+                repsFeitasCalculadas = repsFeitasCalculadas,
+                elapsedSeconds = tempoDecorridoSegundos,
+                remainingSeconds = remainingSecs,
+                tempoFormatado = tempoFormatado,
+                currentRepIndex = if (repsFeitasCalculadas > 0) repsFeitasCalculadas - 1 else 0,
+                currentRepDisplay = repsFeitasCalculadas,
+                repsCompletadas = repsFeitasCalculadas,
+                secondsUntilNextRep = 0,
+                nextRepProgress = 1f,
+                progressOverall = (tempoDecorridoSegundos.toFloat() / totalTreinoSegundos.toFloat()).coerceIn(0f, 1f)
             )
+        }
+    }
+
+    fun stopWorkout(savePartial: Boolean) {
+        if (savePartial) {
+            finalizarSessao(isEarly = true)
+        } else {
+            tickerJob?.cancel()
+            tickerJob = null
+            countdownJob?.cancel()
+            countdownJob = null
+            beepJob?.cancel()
+            beepJob = null
+
+            val serviceInstance = WorkoutTimerService.activeInstance
+            if (serviceInstance != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    serviceInstance.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+                } else {
+                    @Suppress("DEPRECATION")
+                    serviceInstance.stopForeground(true)
+                }
+                serviceInstance.liberarWakeLock()
+                serviceInstance.stopSelf()
+            } else {
+                WorkoutTimerService.stopService(context)
+            }
+
+            try {
+                if (wakeLock?.isHeld == true) wakeLock?.release()
+            } catch (_: Exception) {}
+            wakeLock = null
+
+            _state.update { it.copy(phase = WorkoutPhase.IDLE) }
         }
     }
 
     fun reset() {
         tickerJob?.cancel()
-        WorkoutTimerService.stopService(context)
+        tickerJob = null
+        countdownJob?.cancel()
+        countdownJob = null
+        beepJob?.cancel()
+        beepJob = null
+
+        val serviceInstance = WorkoutTimerService.activeInstance
+        if (serviceInstance != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                serviceInstance.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                serviceInstance.stopForeground(true)
+            }
+            serviceInstance.liberarWakeLock()
+            serviceInstance.stopSelf()
+        } else {
+            WorkoutTimerService.stopService(context)
+        }
+
+        try {
+            if (wakeLock?.isHeld == true) wakeLock?.release()
+        } catch (_: Exception) {}
+        wakeLock = null
+
         _state.value = WorkoutActiveState()
     }
 }
