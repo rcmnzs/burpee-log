@@ -54,7 +54,7 @@ O projeto é **open source**. Qualquer pessoa pode instalar e testar.
 1. Instale o [Android Studio](https://developer.android.com/studio).
 2. Clone o repositório:
 ```bash
-   git clone https://github.com/rcmenezes1998/burpee-log.git
+   git clone https://github.com/rcmnzs/burpee-log.git
 ```
 3. Abra a pasta no Android Studio, aguarde a sincronização do Gradle e execute o app em um emulador ou aparelho.
 
