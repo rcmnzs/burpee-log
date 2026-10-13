@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -247,6 +248,45 @@ class ExampleRobolectricTest {
 
         migratedDb.close()
         context.deleteDatabase(dbName)
+    }
+
+    @Test
+    fun `dao e repository calculam minutos da semana somando duracaoSegundos e verificam meta de 4800`() = runTest {
+        val dao = database.sessaoDao()
+        val repository = SessaoRepositoryImpl(dao)
+        val hoje = java.time.LocalDate.of(2026, 10, 14) // Quarta-feira
+        val zoneId = java.time.ZoneId.systemDefault()
+
+        // Sessão 1: Segunda-feira com 1800 segundos (30 min)
+        val segMillis = java.time.LocalDate.of(2026, 10, 12).atTime(10, 0).atZone(zoneId).toInstant().toEpochMilli()
+        repository.insert(Sessao(dataHora = segMillis, tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 1800))
+
+        // Sessão 2: Terça-feira com 1200 segundos (20 min)
+        val terMillis = java.time.LocalDate.of(2026, 10, 13).atTime(10, 0).atZone(zoneId).toInstant().toEpochMilli()
+        repository.insert(Sessao(dataHora = terMillis, tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 1200))
+
+        // Total até agora: 3000 segundos (50 min). Ainda não atingiu 4800 (80 min)
+        assertEquals(3000, repository.getSegundosSemana(hoje, zoneId).first())
+        assertEquals(50, repository.getMinutosSemana(hoje, zoneId).first())
+        assertFalse(repository.isSemanaCompleta(hoje, zoneId).first())
+
+        // Sessão 3: Sexta-feira com 1800 segundos (30 min)
+        val sexMillis = java.time.LocalDate.of(2026, 10, 16).atTime(10, 0).atZone(zoneId).toInstant().toEpochMilli()
+        repository.insert(Sessao(dataHora = sexMillis, tipo = TipoExercicio.SIX_COUNT, repsFeitas = 45, duracaoSegundos = 1800))
+
+        // Total agora: 4800 segundos (80 min) -> semana completa!
+        assertEquals(4800, repository.getSegundosSemana(hoje, zoneId).first())
+        assertEquals(80, repository.getMinutosSemana(hoje, zoneId).first())
+        assertTrue(repository.isSemanaCompleta(hoje, zoneId).first())
+
+        // Sessão da semana anterior (Domingo dia 11): NÃO deve ser incluída
+        val domAnteriorMillis = java.time.LocalDate.of(2026, 10, 11).atTime(23, 0).atZone(zoneId).toInstant().toEpochMilli()
+        repository.insert(Sessao(dataHora = domAnteriorMillis, tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 1200))
+
+        // Permanece 4800 segundos e 80 minutos para a semana de 12 a 18 de Outubro
+        assertEquals(4800, repository.getSegundosSemana(hoje, zoneId).first())
+        assertEquals(80, repository.getMinutosSemana(hoje, zoneId).first())
+        assertTrue(repository.isSemanaCompleta(hoje, zoneId).first())
     }
 }
 

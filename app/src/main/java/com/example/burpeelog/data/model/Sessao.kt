@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
 const val DURACAO_MINUTOS = 20
 const val META_SEMANAL_MINUTOS = 80
 const val META_SEMANAL_SESSOES = 4
+const val META_SEMANAL_SEGUNDOS = 4800
 
 /**
  * Entidade Room que representa uma sessão de treino de 20 minutos.

@@ -58,11 +58,12 @@ object DashboardCalculator {
         val segundaAtual = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val domingoAtual = hoje.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 
-        val sessoesSemana = sessoes.count {
+        val segundosSemana = sessoes.filter {
             val data = timestampToLocalDate(it.dataHora)
             !data.isBefore(segundaAtual) && !data.isAfter(domingoAtual)
-        }
-        return sessoesSemana * DURACAO_MINUTOS
+        }.sumOf { it.duracaoSegundos }
+
+        return segundosSemana / 60
     }
 
     /**
@@ -76,17 +77,18 @@ object DashboardCalculator {
 
         val segundaAtual = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-        // Agrupa sessões por início da semana (segunda-feira)
-        val sessoesPorSemana = HashMap<LocalDate, Int>()
+        // Agrupa sessões por início da semana (segunda-feira) somando duracaoSegundos
+        val segundosPorSemana = HashMap<LocalDate, Int>()
         for (sessao in sessoes) {
             val data = timestampToLocalDate(sessao.dataHora)
             val segundaDaSemana = data.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-            sessoesPorSemana[segundaDaSemana] = (sessoesPorSemana[segundaDaSemana] ?: 0) + 1
+            segundosPorSemana[segundaDaSemana] = (segundosPorSemana[segundaDaSemana] ?: 0) + sessao.duracaoSegundos
         }
 
-        val sessoesSemanaAtual = sessoesPorSemana[segundaAtual] ?: 0
+        val metaSegundos = 4800 // 80 minutos * 60 segundos
+        val segundosSemanaAtual = segundosPorSemana[segundaAtual] ?: 0
         var streak = 0
-        var semanaCheck = if (sessoesSemanaAtual >= META_SEMANAL_SESSOES) {
+        var semanaCheck = if (segundosSemanaAtual >= metaSegundos) {
             streak++
             segundaAtual.minusWeeks(1)
         } else {
@@ -94,8 +96,8 @@ object DashboardCalculator {
         }
 
         while (true) {
-            val count = sessoesPorSemana[semanaCheck] ?: 0
-            if (count >= META_SEMANAL_SESSOES) {
+            val count = segundosPorSemana[semanaCheck] ?: 0
+            if (count >= metaSegundos) {
                 streak++
                 semanaCheck = semanaCheck.minusWeeks(1)
             } else {

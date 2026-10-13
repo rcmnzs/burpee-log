@@ -37,6 +37,30 @@ interface SessaoDao {
     @Query("SELECT COUNT(*) FROM sessoes WHERE dataHora >= :inicio AND dataHora <= :fim")
     fun getSessoesCountInRange(inicio: Long, fim: Long): Flow<Int>
 
+    /**
+     * Soma a duração em segundos das sessões em um intervalo de tempo.
+     */
+    @Query("SELECT COALESCE(SUM(duracaoSegundos), 0) FROM sessoes WHERE dataHora >= :inicio AND dataHora <= :fim")
+    fun getDuracaoSegundosInRange(inicio: Long, fim: Long): Flow<Int>
+
+    /**
+     * Soma a duração em segundos das sessões da semana (de segunda a domingo).
+     */
+    @Query("SELECT COALESCE(SUM(duracaoSegundos), 0) FROM sessoes WHERE dataHora >= :inicio AND dataHora <= :fim")
+    fun getSegundosSemana(inicio: Long, fim: Long): Flow<Int>
+
+    /**
+     * Calcula os minutos de treino da semana dividindo a soma de duracaoSegundos por 60.
+     */
+    @Query("SELECT COALESCE(SUM(duracaoSegundos), 0) / 60 FROM sessoes WHERE dataHora >= :inicio AND dataHora <= :fim")
+    fun getMinutosSemana(inicio: Long, fim: Long): Flow<Int>
+
+    /**
+     * Verifica se a semana atingiu a meta de 4800 segundos (80 minutos).
+     */
+    @Query("SELECT CASE WHEN COALESCE(SUM(duracaoSegundos), 0) >= 4800 THEN 1 ELSE 0 END FROM sessoes WHERE dataHora >= :inicio AND dataHora <= :fim")
+    fun isSemanaCompleta(inicio: Long, fim: Long): Flow<Boolean>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSessao(sessao: Sessao): Long
 

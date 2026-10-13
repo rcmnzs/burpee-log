@@ -5,6 +5,12 @@ import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
 import kotlinx.coroutines.flow.Flow
 
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
+
 interface SessaoRepository {
     val allSessoes: Flow<List<Sessao>>
     val totalSessoesCount: Flow<Int>
@@ -16,6 +22,26 @@ interface SessaoRepository {
     fun getUltimaSessaoPorTipo(tipo: TipoExercicio): Flow<Sessao?>
     fun getSessoesCountInRange(inicio: Long, fim: Long): Flow<Int>
 
+    fun getDuracaoSegundosInRange(inicio: Long, fim: Long): Flow<Int>
+    fun getSegundosSemana(inicio: Long, fim: Long): Flow<Int>
+    fun getMinutosSemana(inicio: Long, fim: Long): Flow<Int>
+    fun isSemanaCompleta(inicio: Long, fim: Long): Flow<Boolean>
+
+    fun getMinutosSemana(
+        hoje: LocalDate = LocalDate.now(),
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): Flow<Int>
+
+    fun getSegundosSemana(
+        hoje: LocalDate = LocalDate.now(),
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): Flow<Int>
+
+    fun isSemanaCompleta(
+        hoje: LocalDate = LocalDate.now(),
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): Flow<Boolean>
+
     suspend fun insert(sessao: Sessao): Long
     suspend fun insertAll(sessoes: List<Sessao>): List<Long>
     suspend fun importarSessoes(sessoes: List<Sessao>): List<Long>
@@ -23,6 +49,24 @@ interface SessaoRepository {
     suspend fun delete(sessao: Sessao)
     suspend fun deleteById(id: Long)
     suspend fun clearAll()
+
+    companion object {
+        const val META_SEMANAL_SEGUNDOS = 4800 // 80 minutos * 60 segundos
+
+        /**
+         * Calcula o timestamp inicial (segunda-feira 00:00:00) e final (domingo 23:59:59.999) da semana.
+         */
+        fun calcularLimitesSemana(
+            hoje: LocalDate = LocalDate.now(),
+            zoneId: ZoneId = ZoneId.systemDefault()
+        ): Pair<Long, Long> {
+            val segunda = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            val domingo = hoje.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+            val inicioMillis = segunda.atStartOfDay(zoneId).toInstant().toEpochMilli()
+            val fimMillis = domingo.atTime(LocalTime.MAX).atZone(zoneId).toInstant().toEpochMilli()
+            return Pair(inicioMillis, fimMillis)
+        }
+    }
 }
 
 class SessaoRepositoryImpl(
@@ -49,6 +93,33 @@ class SessaoRepositoryImpl(
 
     override fun getSessoesCountInRange(inicio: Long, fim: Long): Flow<Int> =
         sessaoDao.getSessoesCountInRange(inicio, fim)
+
+    override fun getDuracaoSegundosInRange(inicio: Long, fim: Long): Flow<Int> =
+        sessaoDao.getDuracaoSegundosInRange(inicio, fim)
+
+    override fun getSegundosSemana(inicio: Long, fim: Long): Flow<Int> =
+        sessaoDao.getSegundosSemana(inicio, fim)
+
+    override fun getMinutosSemana(inicio: Long, fim: Long): Flow<Int> =
+        sessaoDao.getMinutosSemana(inicio, fim)
+
+    override fun isSemanaCompleta(inicio: Long, fim: Long): Flow<Boolean> =
+        sessaoDao.isSemanaCompleta(inicio, fim)
+
+    override fun getMinutosSemana(hoje: LocalDate, zoneId: ZoneId): Flow<Int> {
+        val (inicio, fim) = SessaoRepository.calcularLimitesSemana(hoje, zoneId)
+        return sessaoDao.getMinutosSemana(inicio, fim)
+    }
+
+    override fun getSegundosSemana(hoje: LocalDate, zoneId: ZoneId): Flow<Int> {
+        val (inicio, fim) = SessaoRepository.calcularLimitesSemana(hoje, zoneId)
+        return sessaoDao.getSegundosSemana(inicio, fim)
+    }
+
+    override fun isSemanaCompleta(hoje: LocalDate, zoneId: ZoneId): Flow<Boolean> {
+        val (inicio, fim) = SessaoRepository.calcularLimitesSemana(hoje, zoneId)
+        return sessaoDao.isSemanaCompleta(inicio, fim)
+    }
 
     override suspend fun insert(sessao: Sessao): Long =
         sessaoDao.insertSessao(sessao)
