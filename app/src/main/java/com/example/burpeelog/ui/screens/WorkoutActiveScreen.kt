@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -422,21 +423,21 @@ private fun ActiveWorkoutView(
             )
         }
 
-        // Bloco Central do Cronômetro Regressivo Grande (mm:ss)
+        // Bloco do Cronômetro Regressivo de 20 minutos (mm:ss)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp)
+                .padding(vertical = 8.dp)
                 .testTag("card_cronometro_principal"),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(20.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp, horizontal = 16.dp),
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -446,13 +447,13 @@ private fun ActiveWorkoutView(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = 2.sp
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
-                // Cronômetro grande mm:ss
+                // Cronômetro regressivo mm:ss (legível, mantendo hierarquia com o timer de repetições em destaque)
                 Text(
                     text = state.tempoFormatado,
-                    fontSize = 68.sp,
-                    fontWeight = FontWeight.Black,
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     color = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     letterSpacing = (-1).sp,
@@ -477,7 +478,7 @@ private fun ActiveWorkoutView(
             }
         }
 
-        // Bloco "Rep X de Y" com indicador visual circular da próxima repetição
+        // Bloco de Destaque da Próxima Repetição e Contagem de Repetições
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -485,31 +486,36 @@ private fun ActiveWorkoutView(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 18.dp, horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "CONTAGEM DE REPETIÇÕES",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Rep ${state.currentRepDisplay} de ${state.totalRepsPrevistas}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.testTag("txt_rep_x_de_y")
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                // Header da Contagem de Repetições
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "CONTAGEM DE REPETIÇÕES",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Rep ${state.currentRepDisplay} de ${state.totalRepsPrevistas}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.testTag("txt_rep_x_de_y")
+                        )
+                    }
                     Text(
                         text = if (state.secondsUntilNextRep > 0) {
                             "Próxima rep em ${state.secondsUntilNextRep}s"
@@ -523,10 +529,12 @@ private fun ActiveWorkoutView(
                     )
                 }
 
-                // Indicador visual circular do tempo até a próxima rep
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Elemento em destaque máximo: Timer regressivo da próxima repetição (~dobro do tamanho anterior de 80.dp -> 164.dp)
                 Box(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(164.dp)
                         .testTag("indicator_next_rep_progress"),
                     contentAlignment = Alignment.Center
                 ) {
@@ -534,21 +542,37 @@ private fun ActiveWorkoutView(
                         progress = { 1f },
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        strokeWidth = 6.dp
+                        strokeWidth = 12.dp
                     )
                     CircularProgressIndicator(
                         progress = { animatedRepProgress },
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.secondary,
-                        strokeWidth = 6.dp,
+                        strokeWidth = 12.dp,
                         strokeCap = StrokeCap.Round
                     )
-                    Text(
-                        text = "${state.secondsUntilNextRep}s",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "${state.secondsUntilNextRep}s",
+                            style = MaterialTheme.typography.displayMedium.copy(
+                                fontFeatureSettings = "tnum"
+                            ),
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = "PRÓXIMA REP",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 1.sp
+                        )
+                    }
                 }
             }
         }
