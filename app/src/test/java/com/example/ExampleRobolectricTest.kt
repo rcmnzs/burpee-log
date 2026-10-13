@@ -196,4 +196,57 @@ class ExampleRobolectricTest {
         manager.reset()
         assertEquals(WorkoutPhase.IDLE, manager.state.value.phase)
     }
+
+    @Test
+    fun `migracao 1 para 2 adiciona duracaoSegundos com valor padrao 1200`() = runTest {
+        val dbName = "test_migration.db"
+        context.deleteDatabase(dbName)
+        val helper = androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory()
+            .create(
+                androidx.sqlite.db.SupportSQLiteOpenHelper.Configuration.builder(context)
+                    .name(dbName)
+                    .callback(object : androidx.sqlite.db.SupportSQLiteOpenHelper.Callback(1) {
+                        override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                            db.execSQL(
+                                "CREATE TABLE IF NOT EXISTS `sessoes` (" +
+                                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                                    "`dataHora` INTEGER NOT NULL, " +
+                                    "`tipo` TEXT NOT NULL, " +
+                                    "`padraoIntervalosSegundos` TEXT, " +
+                                    "`repsPrevistas` INTEGER, " +
+                                    "`repsFeitas` INTEGER NOT NULL, " +
+                                    "`observacao` TEXT, " +
+                                    "`importada` INTEGER NOT NULL)"
+                            )
+                        }
+
+                        override fun onUpgrade(
+                            db: androidx.sqlite.db.SupportSQLiteDatabase,
+                            oldVersion: Int,
+                            newVersion: Int
+                        ) {}
+                    })
+                    .build()
+            )
+
+        val dbV1 = helper.writableDatabase
+        dbV1.execSQL(
+            "INSERT INTO sessoes (dataHora, tipo, repsFeitas, importada) VALUES (1000, 'SIX_COUNT', 50, 0)"
+        )
+        dbV1.close()
+
+        val migratedDb = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .allowMainThreadQueries()
+            .build()
+
+        val sessao = migratedDb.sessaoDao().getSessaoById(1).first()
+        assertNotNull(sessao)
+        assertEquals(1200, sessao?.duracaoSegundos)
+        assertEquals(50, sessao?.repsFeitas)
+
+        migratedDb.close()
+        context.deleteDatabase(dbName)
+    }
 }
+

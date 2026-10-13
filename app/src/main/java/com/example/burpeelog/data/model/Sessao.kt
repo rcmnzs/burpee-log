@@ -30,6 +30,8 @@ data class Sessao(
 
     val repsFeitas: Int,
 
+    val duracaoSegundos: Int = 1200,
+
     val observacao: String? = null,
 
     val importada: Boolean = false
