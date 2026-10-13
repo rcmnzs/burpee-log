@@ -83,6 +83,7 @@ fun WorkoutActiveScreen(
     val state by sessionManager.state.collectAsStateWithLifecycle()
 
     var showEncerrarDialog by remember { mutableStateOf(false) }
+    var isDiscarding by remember { mutableStateOf(false) }
 
     // Manter a tela ligada enquanto o treino estiver ativo nesta tela
     DisposableEffect(Unit) {
@@ -100,7 +101,7 @@ fun WorkoutActiveScreen(
 
     // Ao concluir os 20 minutos, ir automaticamente para a tela de Resumo
     LaunchedEffect(state.phase) {
-        if (state.phase == WorkoutPhase.FINISHED || state.phase == WorkoutPhase.COMPLETED) {
+        if (!isDiscarding && (state.phase == WorkoutPhase.FINISHED || state.phase == WorkoutPhase.COMPLETED)) {
             onNavigateToSummary(
                 state.repsFeitasCalculadas.takeIf { it > 0 } ?: state.repsCompletadas,
                 state.totalRepsPrevistas,
@@ -188,11 +189,16 @@ fun WorkoutActiveScreen(
         }
     }
 
-    // Diálogo de confirmação de encerramento prematuro
+    // Diálogo de confirmação de encerramento com três opções
     if (showEncerrarDialog) {
-        val isParcial = state.elapsedSeconds < (DURACAO_MINUTOS * 60)
+        val tempoDecorrido = state.tempoDecorridoSegundos.takeIf { it > 0 } ?: state.elapsedSeconds
+        val repsFeitas = state.repsFeitasCalculadas.takeIf { it > 0 } ?: state.currentRepDisplay
+        val minutos = tempoDecorrido / 60
+        val segundos = tempoDecorrido % 60
+
         AlertDialog(
             onDismissRequest = { showEncerrarDialog = false },
+            modifier = Modifier.testTag("dialog_encerrar_treino"),
             icon = {
                 Icon(
                     imageVector = Icons.Default.Stop,
@@ -203,7 +209,7 @@ fun WorkoutActiveScreen(
             },
             title = {
                 Text(
-                    text = if (isParcial) "Encerrar Treino Antes do Fim?" else "Finalizar Treino?",
+                    text = "Encerrar Treino",
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
@@ -211,65 +217,86 @@ fun WorkoutActiveScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "Tempo realizado: ${state.tempoFormatado} restantes (${state.elapsedSeconds / 60}m ${state.elapsedSeconds % 60}s concluídos)."
+                        text = "Tempo realizado: ${minutos}m ${segundos}s (${state.tempoFormatado} restantes)."
                     )
                     Text(
-                        text = "Repetições feitas até agora: ${state.currentRepDisplay} de ${state.totalRepsPrevistas} reps."
+                        text = "Repetições feitas: $repsFeitas de ${state.totalRepsPrevistas} reps."
                     )
-                    if (isParcial) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Deseja salvar este treino parcial no histórico ou descartá-lo completamente?",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Escolha como deseja prosseguir com a sessão:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showEncerrarDialog = false
-                        sessionManager.finalizarSessao(isEarly = true)
-                        val finalState = sessionManager.state.value
-                        onNavigateToSummary(
-                            finalState.repsFeitasCalculadas,
-                            finalState.totalRepsPrevistas,
-                            finalState.tempoDecorridoSegundos,
-                            finalState.tipo,
-                            finalState.padrao
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    modifier = Modifier.testTag("btn_confirmar_salvar_parcial")
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (isParcial) "Salvar Parcial" else "Salvar e Concluir")
-                }
-            },
-            dismissButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick = { showEncerrarDialog = false },
-                        modifier = Modifier.testTag("btn_cancelar_dialog_encerrar")
-                    ) {
-                        Text("Continuar")
-                    }
-                    TextButton(
+                    // Opção 1: Salvar parcial
+                    Button(
                         onClick = {
                             showEncerrarDialog = false
-                            sessionManager.stopWorkout(savePartial = false)
+                            sessionManager.finalizarSessao(isEarly = true)
+                            val finalState = sessionManager.state.value
+                            onNavigateToSummary(
+                                finalState.repsFeitasCalculadas,
+                                finalState.totalRepsPrevistas,
+                                finalState.tempoDecorridoSegundos,
+                                finalState.tipo,
+                                finalState.padrao
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_salvar_parcial")
+                    ) {
+                        Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Salvar parcial")
+                    }
+
+                    // Opção 2: Descartar treino
+                    OutlinedButton(
+                        onClick = {
+                            isDiscarding = true
+                            showEncerrarDialog = false
+                            sessionManager.finalizarSessao(isEarly = false)
                             onCancelWorkout()
                         },
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        modifier = Modifier.testTag("btn_descartar_treino_parcial")
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_descartar_treino")
                     ) {
-                        Text("Descartar")
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Descartar treino")
+                    }
+
+                    // Opção 3: Continuar treinando
+                    TextButton(
+                        onClick = { showEncerrarDialog = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_continuar_treinando")
+                    ) {
+                        Text("Continuar treinando")
                     }
                 }
-            }
+            },
+            dismissButton = null
         )
     }
 }
