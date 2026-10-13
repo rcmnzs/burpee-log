@@ -51,12 +51,15 @@ data class WorkoutActiveState(
     val repsFeitasCalculadas: Int = 0
 )
 
-class WorkoutSessionManager(private val context: Context) {
+class WorkoutSessionManager(
+    private val context: Context,
+    private val timeProvider: () -> Long = { SystemClock.elapsedRealtime() }
+) {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private var tickerJob: Job? = null
-    private var countdownJob: Job? = null
-    private var beepJob: Job? = null
+    internal var tickerJob: Job? = null
+    internal var countdownJob: Job? = null
+    internal var beepJob: Job? = null
     private var wakeLock: PowerManager.WakeLock? = null
 
     private val feedbackHelper = WorkoutFeedbackHelper(context)
@@ -65,12 +68,36 @@ class WorkoutSessionManager(private val context: Context) {
     val state: StateFlow<WorkoutActiveState> = _state.asStateFlow()
 
     // Variáveis de tempo monotônico imunes a deriva e mudanças de relógio
-    private var sessionStartRealtime: Long = 0L
-    private var pauseStartRealtime: Long = 0L
-    private var totalPausedDurationMillis: Long = 0L
+    internal var sessionStartRealtime: Long = 0L
+    internal var pauseStartRealtime: Long = 0L
+    internal var totalPausedDurationMillis: Long = 0L
 
     private var lastFiredRepIndex: Int = -1
     private var lastFiredMinute: Int = 0
+
+    fun hasActiveJobs(): Boolean {
+        return tickerJob?.isActive == true || countdownJob?.isActive == true || beepJob?.isActive == true
+    }
+
+    internal fun prepararEstadoParaTeste(
+        phase: WorkoutPhase,
+        padrao: List<Int>,
+        tempoInicioRealtime: Long,
+        pausaAcumuladaMillis: Long = 0L,
+        pausaInicioRealtime: Long = 0L
+    ) {
+        val repsPrevistas = IntervaloCalculator.calcularRepsPrevistas(padrao, DURACAO_MINUTOS)
+        val instantes = IntervaloCalculator.calcularInstantesDasReps(padrao, DURACAO_MINUTOS)
+        sessionStartRealtime = tempoInicioRealtime
+        totalPausedDurationMillis = pausaAcumuladaMillis
+        pauseStartRealtime = pausaInicioRealtime
+        _state.value = WorkoutActiveState(
+            phase = phase,
+            padrao = padrao,
+            totalRepsPrevistas = repsPrevistas,
+            repInstants = instantes
+        )
+    }
 
     fun setWakeLock(lock: PowerManager.WakeLock?) {
         this.wakeLock = lock
@@ -127,7 +154,7 @@ class WorkoutSessionManager(private val context: Context) {
             if (!isActive) return@launch
 
             // Início do treino ativo
-            sessionStartRealtime = SystemClock.elapsedRealtime()
+            sessionStartRealtime = timeProvider()
             totalPausedDurationMillis = 0L
 
             _state.update {
@@ -167,7 +194,7 @@ class WorkoutSessionManager(private val context: Context) {
                 break
             }
 
-            val now = SystemClock.elapsedRealtime()
+            val now = timeProvider()
             val activeElapsedMillis = (now - sessionStartRealtime) - totalPausedDurationMillis
             val elapsedSeconds = (activeElapsedMillis / 1000).toInt()
 
@@ -256,7 +283,7 @@ class WorkoutSessionManager(private val context: Context) {
 
     fun pauseWorkout() {
         if (_state.value.phase != WorkoutPhase.RUNNING) return
-        pauseStartRealtime = SystemClock.elapsedRealtime()
+        pauseStartRealtime = timeProvider()
         _state.update { it.copy(phase = WorkoutPhase.PAUSED) }
 
         WorkoutTimerService.updateNotification(
@@ -271,7 +298,7 @@ class WorkoutSessionManager(private val context: Context) {
 
     fun resumeWorkout() {
         if (_state.value.phase != WorkoutPhase.PAUSED) return
-        val resumeRealtime = SystemClock.elapsedRealtime()
+        val resumeRealtime = timeProvider()
         totalPausedDurationMillis += (resumeRealtime - pauseStartRealtime)
         _state.update { it.copy(phase = WorkoutPhase.RUNNING) }
 
@@ -335,7 +362,7 @@ class WorkoutSessionManager(private val context: Context) {
         } else {
             when (currentState.phase) {
                 WorkoutPhase.RUNNING -> {
-                    val now = SystemClock.elapsedRealtime()
+                    val now = timeProvider()
                     val activeElapsedMillis = (now - sessionStartRealtime) - totalPausedDurationMillis
                     (activeElapsedMillis / 1000).toInt().coerceIn(0, totalTreinoSegundos)
                 }
