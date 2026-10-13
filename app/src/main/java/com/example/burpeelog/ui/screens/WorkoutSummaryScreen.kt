@@ -70,9 +70,11 @@ import kotlinx.coroutines.launch
 fun WorkoutSummaryScreen(
     tipo: TipoExercicio,
     padrao: List<Int>,
-    repsFeitasInicial: Int,
     repsPrevistas: Int,
     duracaoSegundos: Int,
+    repsFeitasCalculadas: Int,
+    isPartial: Boolean,
+    repsFeitasInicial: Int = if (isPartial) repsFeitasCalculadas else repsPrevistas,
     onFinish: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -81,14 +83,17 @@ fun WorkoutSummaryScreen(
     val repository = app.repository
     val scope = rememberCoroutineScope()
 
-    // Regra: campo editável de reps feitas com padrão = reps previstas
-    var repsFeitasTexto by remember { mutableStateOf(repsPrevistas.toString()) }
+    // Regra: preenche automaticamente com repsFeitasCalculadas quando isPartial = true, ou repsPrevistas quando isPartial = false
+    val valorInicialReps = if (isPartial) repsFeitasCalculadas else repsPrevistas
+    var repsFeitasTexto by remember(repsFeitasCalculadas, isPartial, repsPrevistas) {
+        mutableStateOf(valorInicialReps.toString())
+    }
     var observacao by remember { mutableStateOf("") }
     var showDiscardDialog by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
 
-    val repsFeitasNumero = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
-    val isCompleto = duracaoSegundos >= (DURACAO_MINUTOS * 60)
+    val repsFeitasNumero = repsFeitasTexto.toIntOrNull() ?: valorInicialReps
+    val isCompleto = !isPartial && duracaoSegundos >= (DURACAO_MINUTOS * 60)
     val minutos = duracaoSegundos / 60
     val segundos = duracaoSegundos % 60
     val tempoFormatado = String.format("%02d:%02d", minutos, segundos)
@@ -314,7 +319,7 @@ fun WorkoutSummaryScreen(
                     ) {
                         FilledTonalIconButton(
                             onClick = {
-                                val atual = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
+                                val atual = repsFeitasTexto.toIntOrNull() ?: valorInicialReps
                                 if (atual > 0) repsFeitasTexto = (atual - 1).toString()
                             },
                             modifier = Modifier.testTag("btn_reps_minus")
@@ -328,7 +333,7 @@ fun WorkoutSummaryScreen(
                                 repsFeitasTexto = novo.filter { it.isDigit() }.take(4)
                             },
                             label = { Text("Reps Feitas") },
-                            placeholder = { Text("$repsPrevistas") },
+                            placeholder = { Text("$valorInicialReps") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier
@@ -339,7 +344,7 @@ fun WorkoutSummaryScreen(
 
                         FilledTonalIconButton(
                             onClick = {
-                                val atual = repsFeitasTexto.toIntOrNull() ?: repsPrevistas
+                                val atual = repsFeitasTexto.toIntOrNull() ?: valorInicialReps
                                 repsFeitasTexto = (atual + 1).toString()
                             },
                             modifier = Modifier.testTag("btn_reps_plus")
@@ -349,7 +354,11 @@ fun WorkoutSummaryScreen(
                     }
 
                     Text(
-                        text = "Padrão inicial preenchido com as repetições previstas ($repsPrevistas reps). Altere se necessário.",
+                        text = if (isPartial) {
+                            "Preenchido automaticamente com as repetições calculadas até a interrupção ($repsFeitasCalculadas reps). Altere se necessário."
+                        } else {
+                            "Padrão inicial preenchido com as repetições previstas ($repsPrevistas reps). Altere se necessário."
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -103,12 +103,15 @@ fun WorkoutScreen(
             )
         }
         WorkoutPhase.FINISHED, WorkoutPhase.COMPLETED, WorkoutPhase.STOPPED_EARLY -> {
+            val isPartial = activeState.phase == WorkoutPhase.STOPPED_EARLY
+            val repsCalculadas = activeState.repsFeitasCalculadas.takeIf { it > 0 } ?: activeState.repsCompletadas
             WorkoutSummaryScreen(
                 tipo = activeState.tipo,
                 padrao = activeState.padrao,
-                repsFeitasInicial = activeState.repsFeitasCalculadas.takeIf { it > 0 } ?: activeState.repsCompletadas,
                 repsPrevistas = activeState.totalRepsPrevistas,
                 duracaoSegundos = activeState.tempoDecorridoSegundos.takeIf { it > 0 } ?: activeState.elapsedSeconds,
+                repsFeitasCalculadas = repsCalculadas,
+                isPartial = isPartial,
                 onFinish = {
                     sessionManager.reset()
                 },
