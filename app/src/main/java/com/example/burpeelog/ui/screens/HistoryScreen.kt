@@ -221,8 +221,8 @@ fun HistoryScreen(
     // Diálogo para Adicionar Manualmente Sessão Passada
     if (showDialogAdicionarPassada) {
         DialogAdicionarSessaoPassada(
-            onAdicionar = { dataHora, tipo, reps, obs ->
-                viewModel?.adicionarSessaoPassada(dataHora, tipo, reps, obs)
+            onAdicionar = { dataHora, tipo, reps, obs, duracaoSegundos ->
+                viewModel?.adicionarSessaoPassada(dataHora, tipo, reps, obs, duracaoSegundos)
                 showDialogAdicionarPassada = false
             },
             onDismiss = { showDialogAdicionarPassada = false }
@@ -462,8 +462,11 @@ private fun SessaoItemCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
+                        val minutos = sessao.duracaoSegundos / 60
+                        val segundos = sessao.duracaoSegundos % 60
+                        val duracaoFormatada = "%02d:%02d".format(minutos, segundos)
                         Text(
-                            text = "$DURACAO_MINUTOS min",
+                            text = duracaoFormatada,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -593,7 +596,24 @@ private fun DialogEditarSessao(
     var repsTexto by remember { mutableStateOf(sessao.repsFeitas.toString()) }
     var observacao by remember { mutableStateOf(sessao.observacao ?: "") }
 
+    var minutosTexto by remember { mutableStateOf((sessao.duracaoSegundos / 60).toString()) }
+    var segundosTexto by remember { mutableStateOf("%02d".format(sessao.duracaoSegundos % 60)) }
+
     val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
+
+    val minInt = minutosTexto.toIntOrNull()
+    val segInt = segundosTexto.toIntOrNull()
+
+    val erroDuracaoMensagem = when {
+        minutosTexto.isBlank() || segundosTexto.isBlank() -> "Informe os minutos e segundos."
+        minInt == null || segInt == null -> "Valores numéricos inválidos."
+        segInt !in 0..59 -> "Os segundos devem estar entre 0 e 59."
+        (minInt * 60 + segInt) < 1 -> "A duração mínima é de 1 segundo (00:01)."
+        (minInt * 60 + segInt) > 3600 -> "A duração máxima é de 3600 segundos (60:00)."
+        else -> null
+    }
+    val duracaoValida = erroDuracaoMensagem == null
+    val totalDuracaoSegundos = if (duracaoValida) (minInt!! * 60 + segInt!!) else 0
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -639,6 +659,59 @@ private fun DialogEditarSessao(
                     )
                 }
 
+                // Campo Duração (Minutos e Segundos)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(text = "Duração:", style = MaterialTheme.typography.labelMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = minutosTexto,
+                            onValueChange = { novo ->
+                                minutosTexto = novo.filter { it.isDigit() }.take(3)
+                            },
+                            label = { Text("Minutos") },
+                            placeholder = { Text("20") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            isError = !duracaoValida,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_editar_duracao_minutos")
+                        )
+                        Text(
+                            text = ":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedTextField(
+                            value = segundosTexto,
+                            onValueChange = { novo ->
+                                segundosTexto = novo.filter { it.isDigit() }.take(2)
+                            },
+                            label = { Text("Segundos") },
+                            placeholder = { Text("00") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            isError = !duracaoValida,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_editar_duracao_segundos")
+                        )
+                    }
+                    if (!duracaoValida && erroDuracaoMensagem != null) {
+                        Text(
+                            text = erroDuracaoMensagem,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
+                }
+
                 // Campo Reps Feitas
                 OutlinedTextField(
                     value = repsTexto,
@@ -667,14 +740,16 @@ private fun DialogEditarSessao(
             Button(
                 onClick = {
                     val reps = repsTexto.toIntOrNull() ?: return@Button
+                    if (!duracaoValida) return@Button
                     val atualizada = sessao.copy(
                         tipo = tipo,
                         repsFeitas = reps,
+                        duracaoSegundos = totalDuracaoSegundos,
                         observacao = observacao.trim().ifEmpty { null }
                     )
                     onSalvar(atualizada)
                 },
-                enabled = repsValidas,
+                enabled = repsValidas && duracaoValida,
                 modifier = Modifier.testTag("btn_salvar_edicao")
             ) {
                 Text("Salvar Alterações")
@@ -700,18 +775,35 @@ enum class OpcaoDataRelativa(val rotulo: String) {
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun DialogAdicionarSessaoPassada(
-    onAdicionar: (dataHora: Long, tipo: TipoExercicio, repsFeitas: Int, observacao: String?) -> Unit,
+    onAdicionar: (dataHora: Long, tipo: TipoExercicio, repsFeitas: Int, observacao: String?, duracaoSegundos: Int) -> Unit,
     onDismiss: () -> Unit
 ) {
     var tipo by remember { mutableStateOf(TipoExercicio.SIX_COUNT) }
     var repsTexto by remember { mutableStateOf("") }
     var observacao by remember { mutableStateOf("") }
 
+    var minutosTexto by remember { mutableStateOf("20") }
+    var segundosTexto by remember { mutableStateOf("00") }
+
     var opcaoData by remember { mutableStateOf(OpcaoDataRelativa.HOJE) }
     var dataHoraEscolhida by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
+
+    val minInt = minutosTexto.toIntOrNull()
+    val segInt = segundosTexto.toIntOrNull()
+
+    val erroDuracaoMensagem = when {
+        minutosTexto.isBlank() || segundosTexto.isBlank() -> "Informe os minutos e segundos."
+        minInt == null || segInt == null -> "Valores numéricos inválidos."
+        segInt !in 0..59 -> "Os segundos devem estar entre 0 e 59."
+        (minInt * 60 + segInt) < 1 -> "A duração mínima é de 1 segundo (00:01)."
+        (minInt * 60 + segInt) > 3600 -> "A duração máxima é de 3600 segundos (60:00)."
+        else -> null
+    }
+    val duracaoValida = erroDuracaoMensagem == null
+    val totalDuracaoSegundos = if (duracaoValida) (minInt!! * 60 + segInt!!) else 0
 
     // Material3 DatePicker Dialog
     if (showDatePicker) {
@@ -887,6 +979,59 @@ private fun DialogAdicionarSessaoPassada(
                     )
                 }
 
+                // Campo Duração (Minutos e Segundos)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(text = "Duração:", style = MaterialTheme.typography.labelMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = minutosTexto,
+                            onValueChange = { novo ->
+                                minutosTexto = novo.filter { it.isDigit() }.take(3)
+                            },
+                            label = { Text("Minutos") },
+                            placeholder = { Text("20") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            isError = !duracaoValida,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_adicionar_duracao_minutos")
+                        )
+                        Text(
+                            text = ":",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedTextField(
+                            value = segundosTexto,
+                            onValueChange = { novo ->
+                                segundosTexto = novo.filter { it.isDigit() }.take(2)
+                            },
+                            label = { Text("Segundos") },
+                            placeholder = { Text("00") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            isError = !duracaoValida,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_adicionar_duracao_segundos")
+                        )
+                    }
+                    if (!duracaoValida && erroDuracaoMensagem != null) {
+                        Text(
+                            text = erroDuracaoMensagem,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                        )
+                    }
+                }
+
                 // Campo Reps Feitas
                 OutlinedTextField(
                     value = repsTexto,
@@ -917,9 +1062,16 @@ private fun DialogAdicionarSessaoPassada(
             Button(
                 onClick = {
                     val reps = repsTexto.toIntOrNull() ?: return@Button
-                    onAdicionar(dataHoraEscolhida, tipo, reps, observacao)
+                    if (!duracaoValida) return@Button
+                    onAdicionar(
+                        dataHoraEscolhida,
+                        tipo,
+                        reps,
+                        observacao.trim().ifEmpty { null },
+                        totalDuracaoSegundos
+                    )
                 },
-                enabled = repsValidas,
+                enabled = repsValidas && duracaoValida,
                 modifier = Modifier.testTag("btn_confirmar_adicionar_passada")
             ) {
                 Text("Adicionar Sessão")

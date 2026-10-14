@@ -86,13 +86,15 @@ class HistoryViewModel(
         dataHora: Long,
         tipo: TipoExercicio,
         repsFeitas: Int,
-        observacao: String?
+        observacao: String?,
+        duracaoSegundos: Int = 1200
     ) {
         viewModelScope.launch {
             val novaSessao = Sessao(
                 dataHora = dataHora,
                 tipo = tipo,
                 repsFeitas = repsFeitas,
+                duracaoSegundos = duracaoSegundos,
                 observacao = observacao?.trim()?.ifEmpty { null },
                 importada = false
             )
