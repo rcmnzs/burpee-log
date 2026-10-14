@@ -4,6 +4,17 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.0.4] - 2026-10-14
+
+### Corrigido
+- Sessão parcial agora grava o tempo real treinado em vez de 20 minutos
+
+## [1.0.3] - 2026-10-14
+
+### Adicionado
+- Duração da sessão visível e editável no Histórico
+- Minutos da semana agora somam a duração real das sessões
+
 ## [1.0.2] - 2026-10-13
 
 ### Adicionado

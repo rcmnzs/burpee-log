@@ -152,4 +152,31 @@ class WorkoutSessionManagerTest {
         assertEquals(0, manager.state.value.tempoDecorridoSegundos)
         assertEquals(0, manager.state.value.repsFeitasCalculadas)
     }
+
+    /**
+     * 4. Sessão parcial encerra com tempoDecorridoSegundos igual ao tempo real X segundos, e não 1200.
+     */
+    @Test
+    fun `sessao parcial encerra com tempoDecorridoSegundos igual ao tempo real X segundos`() {
+        var currentTime = 5_000_000L
+        val manager = WorkoutSessionManager(context, timeProvider = { currentTime })
+        val padrao = listOf(30)
+        val xSegundos = 350
+
+        currentTime = 5_000_000L + (xSegundos * 1000L)
+        manager.prepararEstadoParaTeste(
+            phase = WorkoutPhase.RUNNING,
+            padrao = padrao,
+            tempoInicioRealtime = 5_000_000L,
+            pausaAcumuladaMillis = 0L
+        )
+
+        manager.finalizarSessao(isEarly = true)
+        assertEquals(xSegundos, manager.state.value.tempoDecorridoSegundos)
+        assertNotEquals(1200, manager.state.value.tempoDecorridoSegundos)
+
+        // Já em sessão completa (isEarly = false), o tempo registrado deve ser 1200
+        manager.finalizarSessao(isEarly = false)
+        assertEquals(1200, manager.state.value.tempoDecorridoSegundos)
+    }
 }

@@ -157,12 +157,18 @@ fun WorkoutSummaryScreen(
                             if (!isSaving) {
                                 isSaving = true
                                 scope.launch {
+                                    val duracaoParaSalvar = if (isPartial) {
+                                        if (duracaoSegundos > 0) duracaoSegundos else (app.workoutSessionManager.state.value.tempoDecorridoSegundos.takeIf { it > 0 } ?: 1)
+                                    } else {
+                                        1200
+                                    }
                                     val sessao = Sessao(
                                         dataHora = System.currentTimeMillis(),
                                         tipo = tipo,
                                         padraoIntervalosSegundos = padrao,
                                         repsPrevistas = repsPrevistas,
                                         repsFeitas = repsFeitasNumero,
+                                        duracaoSegundos = duracaoParaSalvar,
                                         observacao = observacao.trim().ifEmpty { null },
                                         importada = false
                                     )

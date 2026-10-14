@@ -113,7 +113,9 @@ fun HomeScreen(
         DashboardCalculator.calcularMinutosSemanaAtual(sessoes, hoje)
     }
     val progressoSemana = (minutosSemana.toFloat() / META_SEMANAL_MINUTOS.toFloat()).coerceIn(0f, 1f)
-    val sessoesSemana = minutosSemana / DURACAO_MINUTOS
+    val sessoesSemana = remember(sessoes, hoje) {
+        DashboardCalculator.calcularContagemSessoesSemanaAtual(sessoes, hoje)
+    }
 
     val streakSemanas = remember(sessoes, hoje) {
         DashboardCalculator.calcularStreakSemanas(sessoes, hoje)
@@ -363,7 +365,19 @@ private fun CardMetaSemanal(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "$minutosSemana / $META_SEMANAL_MINUTOS min ($sessoesSemana de $META_SEMANAL_SESSOES sessões)",
+                            text = "$minutosSemana / 80 min",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = when (sessoesSemana) {
+                                0 -> "Nenhuma sessão realizada"
+                                1 -> "1 sessão realizada"
+                                else -> "$sessoesSemana sessões realizadas"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,

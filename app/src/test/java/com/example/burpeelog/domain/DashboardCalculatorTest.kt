@@ -127,4 +127,49 @@ class DashboardCalculatorTest {
         val faixasAmbos = DashboardCalculator.gerarFaixasLegenda(HeatmapMode.AMBOS, 100, 40)
         assertEquals("Média dos recordes: 1%–25% · 26%–50% · 51%–75% · 76%+", faixasAmbos)
     }
+
+    @Test
+    fun `soma de minutos da semana com duracoes diferentes calcula corretamente`() {
+        val hoje = LocalDate.of(2026, 10, 14) // Quarta-feira (semana: 12/10 a 18/10)
+        val sessoes = listOf(
+            // Segunda: 900s (15 min)
+            Sessao(dataHora = dateToMillis(2026, 10, 12), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 900),
+            // Terça: 720s (12 min)
+            Sessao(dataHora = dateToMillis(2026, 10, 13), tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 720),
+            // Quarta: 1200s (20 min)
+            Sessao(dataHora = dateToMillis(2026, 10, 14), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 60, duracaoSegundos = 1200),
+            // Semana anterior (Domingo dia 11): 1200s (não deve contar)
+            Sessao(dataHora = dateToMillis(2026, 10, 11), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 40, duracaoSegundos = 1200)
+        )
+
+        // 900 + 720 + 1200 = 2820s -> 2820 / 60 = 47 minutos
+        assertEquals(47, DashboardCalculator.calcularMinutosSemanaAtual(sessoes, hoje))
+        assertEquals(3, DashboardCalculator.calcularContagemSessoesSemanaAtual(sessoes, hoje))
+    }
+
+    @Test
+    fun `regra de semana completa exige 4800 segundos`() {
+        val hoje = LocalDate.of(2026, 10, 18) // Domingo (fim da semana 2)
+        // Semana 1 (2026-10-05 a 2026-10-11): exatamente 4800s (ex.: 2400 + 2400) -> completa
+        // Semana 2 (2026-10-12 a 2026-10-18): 4799s -> incompleta
+        val sessoesIncompleta = listOf(
+            Sessao(dataHora = dateToMillis(2026, 10, 5), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 2400),
+            Sessao(dataHora = dateToMillis(2026, 10, 7), tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 2400),
+            // Semana 2 com 4799 segundos
+            Sessao(dataHora = dateToMillis(2026, 10, 12), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 2399),
+            Sessao(dataHora = dateToMillis(2026, 10, 14), tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 2400)
+        )
+        // Como a semana 2 tem 4799s (< 4800), ela não completou a meta; streak conta apenas a semana anterior (1)
+        assertEquals(1, DashboardCalculator.calcularStreakSemanas(sessoesIncompleta, hoje))
+
+        // Agora adicionando 1 segundo a mais para atingir exatamente 4800s
+        val sessoesCompleta = listOf(
+            Sessao(dataHora = dateToMillis(2026, 10, 5), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 2400),
+            Sessao(dataHora = dateToMillis(2026, 10, 7), tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 2400),
+            Sessao(dataHora = dateToMillis(2026, 10, 12), tipo = TipoExercicio.SIX_COUNT, repsFeitas = 50, duracaoSegundos = 2400),
+            Sessao(dataHora = dateToMillis(2026, 10, 14), tipo = TipoExercicio.NAVY_SEAL, repsFeitas = 30, duracaoSegundos = 2400)
+        )
+        // Ambas semanas atingiram 4800s -> streak = 2
+        assertEquals(2, DashboardCalculator.calcularStreakSemanas(sessoesCompleta, hoje))
+    }
 }

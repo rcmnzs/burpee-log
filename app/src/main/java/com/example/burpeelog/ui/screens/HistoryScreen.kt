@@ -77,6 +77,7 @@ import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
 import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
+import com.example.burpeelog.domain.DuracaoValidator
 import com.example.burpeelog.ui.components.BurpeeHistoryLineChart
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -601,19 +602,10 @@ private fun DialogEditarSessao(
 
     val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
 
-    val minInt = minutosTexto.toIntOrNull()
-    val segInt = segundosTexto.toIntOrNull()
-
-    val erroDuracaoMensagem = when {
-        minutosTexto.isBlank() || segundosTexto.isBlank() -> "Informe os minutos e segundos."
-        minInt == null || segInt == null -> "Valores numéricos inválidos."
-        segInt !in 0..59 -> "Os segundos devem estar entre 0 e 59."
-        (minInt * 60 + segInt) < 1 -> "A duração mínima é de 1 segundo (00:01)."
-        (minInt * 60 + segInt) > 3600 -> "A duração máxima é de 3600 segundos (60:00)."
-        else -> null
-    }
-    val duracaoValida = erroDuracaoMensagem == null
-    val totalDuracaoSegundos = if (duracaoValida) (minInt!! * 60 + segInt!!) else 0
+    val validacaoDuracao = DuracaoValidator.validar(minutosTexto, segundosTexto)
+    val duracaoValida = validacaoDuracao.ehValido
+    val erroDuracaoMensagem = validacaoDuracao.mensagemErro
+    val totalDuracaoSegundos = validacaoDuracao.totalSegundos
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -791,19 +783,10 @@ private fun DialogAdicionarSessaoPassada(
 
     val repsValidas = repsTexto.toIntOrNull()?.let { it in 1..5000 } == true
 
-    val minInt = minutosTexto.toIntOrNull()
-    val segInt = segundosTexto.toIntOrNull()
-
-    val erroDuracaoMensagem = when {
-        minutosTexto.isBlank() || segundosTexto.isBlank() -> "Informe os minutos e segundos."
-        minInt == null || segInt == null -> "Valores numéricos inválidos."
-        segInt !in 0..59 -> "Os segundos devem estar entre 0 e 59."
-        (minInt * 60 + segInt) < 1 -> "A duração mínima é de 1 segundo (00:01)."
-        (minInt * 60 + segInt) > 3600 -> "A duração máxima é de 3600 segundos (60:00)."
-        else -> null
-    }
-    val duracaoValida = erroDuracaoMensagem == null
-    val totalDuracaoSegundos = if (duracaoValida) (minInt!! * 60 + segInt!!) else 0
+    val validacaoDuracao = DuracaoValidator.validar(minutosTexto, segundosTexto)
+    val duracaoValida = validacaoDuracao.ehValido
+    val erroDuracaoMensagem = validacaoDuracao.mensagemErro
+    val totalDuracaoSegundos = validacaoDuracao.totalSegundos
 
     // Material3 DatePicker Dialog
     if (showDatePicker) {

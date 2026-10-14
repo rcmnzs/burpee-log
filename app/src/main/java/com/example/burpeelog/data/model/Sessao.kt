@@ -38,8 +38,8 @@ data class Sessao(
     val importada: Boolean = false
 ) {
     /**
-     * Duração fixa da sessão em minutos, conforme as regras do Busy Dad Program.
+     * Duração da sessão em minutos calculada a partir de [duracaoSegundos].
      */
     val duracaoMinutos: Int
-        get() = DURACAO_MINUTOS
+        get() = duracaoSegundos / 60
 }

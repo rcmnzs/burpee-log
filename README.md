@@ -20,8 +20,8 @@ Este é um projeto independente e **não é afiliado ao canal nem ao programa Bu
 - **Bipe e vibração** a cada repetição, funcionando mesmo com a tela apagada.
 - **Resumo da sessão**: ajuste das repetições realmente feitas e observação opcional.
 - **Painel estilo GitHub**: mapa de calor dos últimos 12 meses em que a cor representa a quantidade de repetições do dia (Six-Count, Navy Seal ou ambos, em relação ao seu recorde).
-- **Resumo semanal**: minutos da semana (meta de 80), sequência de semanas completas, total de repetições e recordes.
-- **Histórico** com filtros, edição, exclusão e gráfico de evolução.
+- **Resumo semanal**: minutos da semana somando a duração real das sessões (meta de 80 min), sequência de semanas completas (4800 s), total de repetições e recordes.
+- **Histórico** com visualização e edição da duração real da sessão (mm:ss), filtros, adição manual de treinos passados, exclusão e gráfico de evolução.
 - **Importação de treinos antigos** por arquivo CSV (por exemplo, exportado do Google Sheets) com as colunas `data`, `six-counts` e `navyseals`.
 - **Exportação para CSV** para backup.
 - **100% offline e privado**: sem login, sem internet e sem coleta de dados. Tudo fica salvo no seu aparelho.

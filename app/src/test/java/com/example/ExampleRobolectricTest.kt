@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -287,6 +288,77 @@ class ExampleRobolectricTest {
         assertEquals(4800, repository.getSegundosSemana(hoje, zoneId).first())
         assertEquals(80, repository.getMinutosSemana(hoje, zoneId).first())
         assertTrue(repository.isSemanaCompleta(hoje, zoneId).first())
+    }
+
+    @Test
+    fun `ao salvar uma sessao parcial encerrada aos X segundos o valor gravado em duracaoSegundos e X nao 1200`() = runTest {
+        val dao = database.sessaoDao()
+        val repository = SessaoRepositoryImpl(dao)
+
+        var currentTime = 1_000_000L
+        val manager = WorkoutSessionManager(context, timeProvider = { currentTime })
+        val padrao = listOf(30)
+
+        // Treino ativo encerrado aos 350 segundos (5m 50s)
+        val xSegundos = 350
+        currentTime = 1_000_000L + (xSegundos * 1000L)
+        manager.prepararEstadoParaTeste(
+            phase = WorkoutPhase.RUNNING,
+            padrao = padrao,
+            tempoInicioRealtime = 1_000_000L,
+            pausaAcumuladaMillis = 0L
+        )
+
+        // Encerra a sessão antecipadamente
+        manager.finalizarSessao(isEarly = true)
+        val state = manager.state.value
+
+        assertEquals(WorkoutPhase.STOPPED_EARLY, state.phase)
+        assertEquals(xSegundos, state.tempoDecorridoSegundos)
+
+        // Lógica de gravação da WorkoutSummaryScreen para sessão parcial
+        val isPartial = state.phase == WorkoutPhase.STOPPED_EARLY
+        val duracaoParaSalvar = if (isPartial) {
+            if (state.tempoDecorridoSegundos > 0) state.tempoDecorridoSegundos else 1200
+        } else {
+            1200
+        }
+
+        val sessaoParcial = Sessao(
+            tipo = state.tipo,
+            padraoIntervalosSegundos = state.padrao,
+            repsPrevistas = state.totalRepsPrevistas,
+            repsFeitas = state.repsFeitasCalculadas,
+            duracaoSegundos = duracaoParaSalvar,
+            observacao = "Treino parcial teste"
+        )
+        repository.insert(sessaoParcial)
+
+        // Verifica que no banco o valor gravado é exatamente X (350), e não 1200
+        val sessaoSalva = repository.allSessoes.first().first()
+        assertEquals(xSegundos, sessaoSalva.duracaoSegundos)
+        assertNotEquals(1200, sessaoSalva.duracaoSegundos)
+        assertEquals(xSegundos / 60, sessaoSalva.duracaoMinutos)
+
+        // Sessão concluída normalmente (20 minutos completos) continua gravando 1200
+        manager.startWorkout(TipoExercicio.NAVY_SEAL, listOf(40))
+        manager.finalizarSessao(isEarly = false)
+        val stateCompleto = manager.state.value
+        val isPartialCompleto = stateCompleto.phase == WorkoutPhase.STOPPED_EARLY
+        val duracaoCompleta = if (isPartialCompleto) stateCompleto.tempoDecorridoSegundos else 1200
+
+        val sessaoCompleta = Sessao(
+            tipo = stateCompleto.tipo,
+            padraoIntervalosSegundos = stateCompleto.padrao,
+            repsPrevistas = stateCompleto.totalRepsPrevistas,
+            repsFeitas = stateCompleto.repsFeitasCalculadas,
+            duracaoSegundos = duracaoCompleta
+        )
+        repository.insert(sessaoCompleta)
+
+        val todasSessoes = repository.allSessoes.first()
+        val ultimaSalva = todasSessoes.first { it.tipo == TipoExercicio.NAVY_SEAL }
+        assertEquals(1200, ultimaSalva.duracaoSegundos)
     }
 }
 

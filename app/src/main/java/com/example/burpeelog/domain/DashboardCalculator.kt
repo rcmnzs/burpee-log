@@ -67,6 +67,19 @@ object DashboardCalculator {
     }
 
     /**
+     * Calcula a quantidade de sessões realizadas na semana atual (Segunda a Domingo).
+     */
+    fun calcularContagemSessoesSemanaAtual(sessoes: List<Sessao>, hoje: LocalDate = LocalDate.now()): Int {
+        val segundaAtual = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        val domingoAtual = hoje.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+
+        return sessoes.count {
+            val data = timestampToLocalDate(it.dataHora)
+            !data.isBefore(segundaAtual) && !data.isAfter(domingoAtual)
+        }
+    }
+
+    /**
      * Calcula a sequência (streak) de semanas consecutivas que atingiram a meta de 80 minutos.
      * Considera semanas de Segunda a Domingo.
      * Se a semana atual ainda não atingiu a meta (por estar em andamento), a sequência é contada
