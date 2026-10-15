@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
@@ -47,10 +47,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.example.burpeelog.data.preferences.AppTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,6 +93,7 @@ fun DadosScreen(
     val scope = rememberCoroutineScope()
 
     val todasSessoes by repository.allSessoes.collectAsStateWithLifecycle(emptyList())
+    val temaAtual by app.themePreferences.temaFlow.collectAsStateWithLifecycle(initialValue = AppTheme.ESCURO)
 
     var previewImportacao by remember { mutableStateOf<CsvImportPreview?>(null) }
     var isImportando by remember { mutableStateOf(false) }
@@ -142,7 +147,7 @@ fun DadosScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Dados e Backup",
+                        text = "Configurações e Dados",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -161,8 +166,7 @@ fun DadosScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -175,6 +179,77 @@ fun DadosScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            // Seção 0: Aparência e Tema
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("card_configuracao_tema"),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DarkMode,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Aparência",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Tema visual do aplicativo",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("segmented_button_tema")
+                    ) {
+                        val opcoes = listOf(
+                            AppTheme.ESCURO to "Escuro",
+                            AppTheme.CLARO to "Claro",
+                            AppTheme.SEGUIR_SISTEMA to "Automático"
+                        )
+                        opcoes.forEachIndexed { index, (tema, rotulo) ->
+                            SegmentedButton(
+                                selected = temaAtual == tema,
+                                onClick = {
+                                    scope.launch {
+                                        app.themePreferences.salvarTema(tema)
+                                    }
+                                },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = opcoes.size),
+                                modifier = Modifier.testTag("btn_tema_${tema.name.lowercase()}")
+                            ) {
+                                Text(text = rotulo, maxLines = 1)
+                            }
+                        }
+                    }
+                }
+            }
             // Seção 1: Importar CSV
             Card(
                 modifier = Modifier

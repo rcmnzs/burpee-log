@@ -3,6 +3,7 @@ package com.example.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val DarkColorScheme = darkColorScheme(
@@ -24,14 +25,33 @@ private val DarkColorScheme = darkColorScheme(
     outline = OutlineBorder
 )
 
+private val LightColorScheme = lightColorScheme(
+    primary = OrangePrimaryLight,
+    onPrimary = OrangeOnPrimaryLight,
+    primaryContainer = OrangeContainerLight,
+    onPrimaryContainer = OrangeOnContainerLight,
+    secondary = CyanSecondaryLight,
+    onSecondary = CyanOnSecondaryLight,
+    secondaryContainer = CyanContainerLight,
+    onSecondaryContainer = CyanOnContainerLight,
+    background = LightBackground,
+    onBackground = TextPrimaryLight,
+    surface = LightSurface,
+    onSurface = TextPrimaryLight,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = TextSecondaryLight,
+    surfaceContainer = LightSurfaceContainer,
+    outline = OutlineBorderLight
+)
+
 @Composable
 fun BurpeeLogTheme(
-    // By default, the app is built strictly for the requested dark theme experience
     darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     MaterialTheme(
-        colorScheme = DarkColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )
@@ -44,5 +64,5 @@ fun MyApplicationTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    BurpeeLogTheme(content = content)
+    BurpeeLogTheme(darkTheme = darkTheme, content = content)
 }

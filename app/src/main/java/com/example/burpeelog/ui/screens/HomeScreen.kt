@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -175,8 +174,7 @@ fun HomeScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -739,7 +737,7 @@ private fun HeatmapGrid(
                             2 -> HeatmapLevel2
                             3 -> HeatmapLevel3
                             4 -> HeatmapLevel4
-                            else -> HeatmapLevel0
+                            else -> MaterialTheme.colorScheme.surfaceVariant
                         }
 
                         val isSelected = diaSelecionado?.date == dia.date
@@ -876,7 +874,7 @@ private fun LegendaHeatmap(
             Spacer(modifier = Modifier.width(6.dp))
 
             listOf(
-                HeatmapLevel0,
+                MaterialTheme.colorScheme.surfaceVariant,
                 HeatmapLevel1,
                 HeatmapLevel2,
                 HeatmapLevel3,

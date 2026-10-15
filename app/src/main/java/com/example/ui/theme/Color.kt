@@ -21,3 +21,23 @@ val CyanOnContainer = Color(0xFFB0F4FF)
 val TextPrimary = Color(0xFFF1F3F7)
 val TextSecondary = Color(0xFFA2A8B4)
 val OutlineBorder = Color(0xFF333842)
+
+// Burpee Log Light Theme Palette (Clean Athletic Amber & Fresh Contrast)
+val LightBackground = Color(0xFFF8F9FA)
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFEDE8E3)
+val LightSurfaceContainer = Color(0xFFF2F3F5)
+
+val OrangePrimaryLight = Color(0xFFE65100)
+val OrangeOnPrimaryLight = Color(0xFFFFFFFF)
+val OrangeContainerLight = Color(0xFFFFDBC8)
+val OrangeOnContainerLight = Color(0xFF341000)
+
+val CyanSecondaryLight = Color(0xFF006874)
+val CyanOnSecondaryLight = Color(0xFFFFFFFF)
+val CyanContainerLight = Color(0xFF97F0FF)
+val CyanOnContainerLight = Color(0xFF001F24)
+
+val TextPrimaryLight = Color(0xFF1A1C1E)
+val TextSecondaryLight = Color(0xFF5A5F6B)
+val OutlineBorderLight = Color(0xFF74777F)
