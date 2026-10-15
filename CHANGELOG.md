@@ -7,7 +7,6 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.
 ## [1.0.5] - 2026-10-14
 
 ### Adicionado
-- Aplicação da tipografia Monaspace Argon (GitHub Next) em toda a interface e cronômetros
 - Opção de tema claro, escuro ou automático nas configurações
 
 ### Corrigido

@@ -60,7 +60,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import com.example.ui.theme.MonaspaceArgon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -349,7 +348,7 @@ private fun CountdownView(countdown: Int, tipoTitulo: String) {
                         fontSize = 88.sp,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.primary,
-                        fontFamily = MonaspaceArgon,
+                        fontFamily = FontFamily.Monospace,
                         modifier = Modifier.testTag("txt_countdown_number")
                     )
                 }
@@ -455,7 +454,7 @@ private fun ActiveWorkoutView(
                     text = state.tempoFormatado,
                     fontSize = 42.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = MonaspaceArgon,
+                    fontFamily = FontFamily.Monospace,
                     color = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     letterSpacing = (-1).sp,
                     modifier = Modifier.testTag("txt_cronometro_grande")
