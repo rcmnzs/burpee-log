@@ -20,6 +20,7 @@ data class WorkoutConfigUiState(
     val tipoSugerido: TipoExercicio = TipoExercicio.SIX_COUNT,
     val tipoAlteradoManualmente: Boolean = false,
     val padraoIntervalos: List<Int> = listOf(30),
+    val aquecimentoAtivo: Boolean = false,
     val duracaoMinutos: Int = DURACAO_MINUTOS,
     val repsPrevistas: Int = 40,
     val previaCiclo: String = "",
@@ -48,6 +49,7 @@ class WorkoutConfigViewModel(
 
                     val tipoFinal = if (!current.tipoAlteradoManualmente) sugerido else current.tipoSelecionado
                     val padrao = patternPreferences.getPadraoParaTipo(tipoFinal)
+                    val aquecimento = patternPreferences.getAquecimentoParaTipo(tipoFinal)
                     val reps = IntervaloCalculator.calcularRepsPrevistas(padrao, DURACAO_MINUTOS)
                     val previa = IntervaloCalculator.gerarPreviaDoCiclo(padrao)
 
@@ -56,6 +58,7 @@ class WorkoutConfigViewModel(
                         tipoSugerido = sugerido,
                         tipoSelecionado = tipoFinal,
                         padraoIntervalos = padrao,
+                        aquecimentoAtivo = aquecimento,
                         repsPrevistas = reps,
                         previaCiclo = previa
                     )
@@ -66,6 +69,7 @@ class WorkoutConfigViewModel(
 
     fun selecionarTipo(tipo: TipoExercicio) {
         val padrao = patternPreferences.getPadraoParaTipo(tipo)
+        val aquecimento = patternPreferences.getAquecimentoParaTipo(tipo)
         val reps = IntervaloCalculator.calcularRepsPrevistas(padrao, DURACAO_MINUTOS)
         val previa = IntervaloCalculator.gerarPreviaDoCiclo(padrao)
 
@@ -74,10 +78,17 @@ class WorkoutConfigViewModel(
                 tipoSelecionado = tipo,
                 tipoAlteradoManualmente = true,
                 padraoIntervalos = padrao,
+                aquecimentoAtivo = aquecimento,
                 repsPrevistas = reps,
                 previaCiclo = previa
             )
         }
+    }
+
+    fun alternarAquecimento(ativo: Boolean) {
+        val tipo = _uiState.value.tipoSelecionado
+        patternPreferences.salvarAquecimentoParaTipo(tipo, ativo)
+        _uiState.update { it.copy(aquecimentoAtivo = ativo) }
     }
 
     fun alterarIntervalo(index: Int, novoValorSegundos: Int) {
@@ -128,6 +139,7 @@ class WorkoutConfigViewModel(
     }
 
     fun moverMinutoParaBaixo(index: Int) {
+        if (index <= 0) return
         _uiState.update { state ->
             if (index !in 0 until state.padraoIntervalos.size - 1) return@update state
             val novaLista = state.padraoIntervalos.toMutableList()
@@ -152,9 +164,10 @@ class WorkoutConfigViewModel(
     }
 
     fun iniciarTreino() {
-        // Salva com garantia o padrão atual do tipo
+        // Salva com garantia o padrão atual do tipo e aquecimento
         val state = _uiState.value
         patternPreferences.salvarPadraoParaTipo(state.tipoSelecionado, state.padraoIntervalos)
+        patternPreferences.salvarAquecimentoParaTipo(state.tipoSelecionado, state.aquecimentoAtivo)
         _uiState.update { it.copy(sessaoIniciadaDialog = true) }
     }
 

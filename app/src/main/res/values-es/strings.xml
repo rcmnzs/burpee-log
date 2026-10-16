@@ -81,6 +81,20 @@
     <string name="total_duration_label">Total: %1$d minutos</string>
     <string name="btn_start_session">Iniciar Sesión de 20 Minutos</string>
 
+    <!-- Warmup -->
+    <string name="warmup_title">Calentamiento (7 min)</string>
+    <string name="warmup_flow_summary">Calentamiento: 1 min burpee → 2 min descanso → 1 min burpee → 3 min descanso → entrenamiento (20 min)</string>
+    <string name="btn_start_warmup_active">Iniciar (27 min)</string>
+    <string name="btn_start_standard">Iniciar (20 min)</string>
+    <string name="warmup_burpees_badge">Calentamiento — Burpees</string>
+    <string name="warmup_rest_badge">Calentamiento — Descanso</string>
+    <string name="workout_starts_in">El entrenamiento comienza en %1$s</string>
+    <string name="dialog_warmup_finish_title">Calentamiento en curso</string>
+    <string name="dialog_warmup_finish_desc">¿Deseas saltar el calentamiento e ir directo al entrenamiento, o cancelar todo?</string>
+    <string name="btn_skip_warmup">Saltar calentamiento e iniciar entrenamiento</string>
+    <string name="btn_cancel_all">Cancelar todo</string>
+    <string name="btn_continue_warmup">Continuar calentamiento</string>
+
     <!-- Active Workout -->
     <string name="session_in_progress">Sesión en Curso</string>
     <string name="get_ready">¡Prepárate!</string>

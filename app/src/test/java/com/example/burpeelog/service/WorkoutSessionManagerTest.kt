@@ -179,4 +179,125 @@ class WorkoutSessionManagerTest {
         manager.finalizarSessao(isEarly = false)
         assertEquals(1200, manager.state.value.tempoDecorridoSegundos)
     }
+
+    /**
+     * 5. Sequência correta de fases com aquecimento ativo e desativado.
+     */
+    @Test
+    fun `sequencia de fases inicia direto em ACTIVE se aquecimento desativado e em WARMUP se ativo`() {
+        val manager = WorkoutSessionManager(context)
+
+        // Com aquecimento desativado
+        manager.startWorkout(TipoExercicio.SIX_COUNT, listOf(30), aquecimentoAtivo = false)
+        assertEquals(WorkoutPhase.COUNTDOWN, manager.state.value.phase)
+        assertFalse(manager.state.value.aquecimentoAtivo)
+        manager.reset()
+
+        // Com aquecimento ativado
+        manager.startWorkout(TipoExercicio.SIX_COUNT, listOf(30), aquecimentoAtivo = true)
+        assertEquals(WorkoutPhase.COUNTDOWN, manager.state.value.phase)
+        assertTrue(manager.state.value.aquecimentoAtivo)
+        manager.reset()
+    }
+
+    /**
+     * 6. Pular aquecimento transiciona imediatamente para a fase ACTIVE.
+     */
+    @Test
+    fun `pular aquecimento transiciona imediatamente para a fase ACTIVE`() {
+        val manager = WorkoutSessionManager(context)
+        manager.prepararEstadoParaTeste(
+            phase = WorkoutPhase.WARMUP_BURPEE_1,
+            padrao = listOf(30),
+            tempoInicioRealtime = 1_000_000L,
+            aquecimentoAtivo = true,
+            warmupReps = 5
+        )
+
+        assertEquals(WorkoutPhase.WARMUP_BURPEE_1, manager.state.value.phase)
+        manager.skipWarmup()
+
+        var attempts = 0
+        while (manager.state.value.phase != WorkoutPhase.ACTIVE && attempts < 30) {
+            Thread.sleep(50)
+            attempts++
+        }
+
+        assertEquals(WorkoutPhase.ACTIVE, manager.state.value.phase)
+        assertEquals("Treino principal começa no minuto 1", 1, manager.state.value.currentMinute)
+        manager.finalizarSessao(isEarly = true)
+        manager.reset()
+    }
+
+    /**
+     * 7. Confirmação de que as reps do aquecimento NÃO somam ao total da sessão
+     * e duração gravada é de 1200s (20 minutos do treino principal) na sessão completa.
+     */
+    @Test
+    fun `reps do aquecimento nao somam ao total da sessao e duracao gravada e de 1200s`() {
+        var currentTime = 10_000_000L
+        val manager = WorkoutSessionManager(context, timeProvider = { currentTime })
+        val padrao = listOf(30)
+        val instantes = IntervaloCalculator.calcularInstantesDasReps(padrao, DURACAO_MINUTOS)
+
+        // Cenário A: Treino completo (isEarly = false) com aquecimento prévio
+        manager.prepararEstadoParaTeste(
+            phase = WorkoutPhase.ACTIVE,
+            padrao = padrao,
+            tempoInicioRealtime = 10_000_000L,
+            aquecimentoAtivo = true,
+            warmupReps = 20
+        )
+
+        manager.finalizarSessao(isEarly = false)
+
+        assertEquals("Duração de sessão completa deve ser exatamente 1200s", 1200, manager.state.value.tempoDecorridoSegundos)
+        assertEquals("Reps devem ser exatamente as do treino principal, sem somar o aquecimento", instantes.size, manager.state.value.repsFeitasCalculadas)
+        assertEquals(WorkoutPhase.COMPLETED, manager.state.value.phase)
+
+        // Cenário B: Usuário cancela durante a fase de aquecimento
+        manager.prepararEstadoParaTeste(
+            phase = WorkoutPhase.WARMUP_REST_1,
+            padrao = padrao,
+            tempoInicioRealtime = 10_000_000L,
+            aquecimentoAtivo = true,
+            warmupReps = 10
+        )
+
+        manager.finalizarSessao(isEarly = true)
+
+        assertEquals("Cancelamento no aquecimento deve ter 0 reps computadas para a sessão", 0, manager.state.value.repsFeitasCalculadas)
+        assertEquals("Cancelamento no aquecimento deve ter 0s de duração do treino principal", 0, manager.state.value.tempoDecorridoSegundos)
+        assertEquals(WorkoutPhase.STOPPED_EARLY, manager.state.value.phase)
+    }
+
+    /**
+     * 8. Validação das 4 fases do aquecimento e propriedades enum.
+     */
+    @Test
+    fun `validacao das 4 fases do aquecimento e propriedades enum`() {
+        val fases = listOf(
+            WorkoutPhase.WARMUP_BURPEE_1,
+            WorkoutPhase.WARMUP_REST_1,
+            WorkoutPhase.WARMUP_BURPEE_2,
+            WorkoutPhase.WARMUP_REST_2
+        )
+
+        fases.forEach { fase ->
+            assertTrue("$fase deve ser considerada isWarmup", fase.isWarmup)
+        }
+
+        assertTrue(WorkoutPhase.WARMUP_BURPEE_1.isWarmupBurpee)
+        assertTrue(WorkoutPhase.WARMUP_BURPEE_2.isWarmupBurpee)
+        assertFalse(WorkoutPhase.WARMUP_REST_1.isWarmupBurpee)
+        assertFalse(WorkoutPhase.WARMUP_REST_2.isWarmupBurpee)
+
+        assertTrue(WorkoutPhase.WARMUP_REST_1.isWarmupRest)
+        assertTrue(WorkoutPhase.WARMUP_REST_2.isWarmupRest)
+        assertFalse(WorkoutPhase.WARMUP_BURPEE_1.isWarmupRest)
+        assertFalse(WorkoutPhase.WARMUP_BURPEE_2.isWarmupRest)
+
+        assertFalse(WorkoutPhase.ACTIVE.isWarmup)
+        assertFalse(WorkoutPhase.COUNTDOWN.isWarmup)
+    }
 }

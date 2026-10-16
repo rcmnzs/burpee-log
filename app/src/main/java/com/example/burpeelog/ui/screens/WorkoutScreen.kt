@@ -54,10 +54,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import com.example.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +94,13 @@ fun WorkoutScreen(
     val activeState by sessionManager.state.collectAsStateWithLifecycle()
 
     when (activeState.phase) {
-        WorkoutPhase.COUNTDOWN, WorkoutPhase.RUNNING, WorkoutPhase.PAUSED -> {
+        WorkoutPhase.COUNTDOWN,
+        WorkoutPhase.WARMUP_BURPEE_1,
+        WorkoutPhase.WARMUP_REST_1,
+        WorkoutPhase.WARMUP_BURPEE_2,
+        WorkoutPhase.WARMUP_REST_2,
+        WorkoutPhase.ACTIVE,
+        WorkoutPhase.PAUSED -> {
             WorkoutActiveScreen(
                 onNavigateToSummary = { repsFeitas, repsPrevistas, duracaoSegundos, tipo, padrao ->
                     // O sessionManager transiciona para FINISHED ou STOPPED_EARLY
@@ -119,8 +129,8 @@ fun WorkoutScreen(
         }
         WorkoutPhase.IDLE -> {
             WorkoutConfigContent(
-                onIniciarTreino = { tipo, padrao ->
-                    sessionManager.startWorkout(tipo, padrao)
+                onIniciarTreino = { tipo, padrao, aquecimentoAtivo ->
+                    sessionManager.startWorkout(tipo, padrao, aquecimentoAtivo)
                 },
                 modifier = modifier
             )
@@ -131,7 +141,7 @@ fun WorkoutScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WorkoutConfigContent(
-    onIniciarTreino: (TipoExercicio, List<Int>) -> Unit,
+    onIniciarTreino: (TipoExercicio, List<Int>, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WorkoutConfigViewModel? = run {
         val app = LocalContext.current.applicationContext as? BurpeeLogApplication
@@ -154,7 +164,7 @@ private fun WorkoutConfigContent(
     ) { _ ->
         // Inicia o treino independente da resposta para nunca bloquear o usuário
         viewModel?.iniciarTreino()
-        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
+        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos, uiState.aquecimentoAtivo)
     }
 
     fun dispararInicioTreino() {
@@ -169,7 +179,7 @@ private fun WorkoutConfigContent(
             }
         }
         viewModel?.iniciarTreino()
-        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos)
+        onIniciarTreino(uiState.tipoSelecionado, uiState.padraoIntervalos, uiState.aquecimentoAtivo)
     }
 
     Scaffold(
@@ -181,12 +191,12 @@ private fun WorkoutConfigContent(
                 title = {
                     Column {
                         Text(
-                            text = "Configurar Sessão",
+                            text = stringResource(R.string.workout_config_title),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge
                         )
                         Text(
-                            text = "Busy Dad Program • $DURACAO_MINUTOS minutos",
+                            text = stringResource(R.string.workout_config_subtitle, DURACAO_MINUTOS),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -200,7 +210,7 @@ private fun WorkoutConfigContent(
         },
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // Botão Iniciar fixo na parte inferior
+            // Botão Iniciar fixo na parte inferior com indicador de tempo total (27 min ou 20 min)
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp,
@@ -211,6 +221,12 @@ private fun WorkoutConfigContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
+                    val textoBotao = if (uiState.aquecimentoAtivo) {
+                        stringResource(R.string.btn_start_warmup_active)
+                    } else {
+                        stringResource(R.string.btn_start_standard)
+                    }
+
                     Button(
                         onClick = { dispararInicioTreino() },
                         modifier = Modifier
@@ -230,11 +246,24 @@ private fun WorkoutConfigContent(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Iniciar (${uiState.repsPrevistas} reps previstas)",
+                            text = textoBotao,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    if (uiState.aquecimentoAtivo) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = stringResource(R.string.warmup_flow_summary),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("txt_resumo_aquecimento")
                         )
                     }
                 }
@@ -251,6 +280,14 @@ private fun WorkoutConfigContent(
             // 1. Duração Fixa do Busy Dad Program (Informativo apenas)
             item {
                 DuracaoFixaInfoCard()
+            }
+
+            // 1.5 Opção de Aquecimento Opcional (7 min)
+            item {
+                CardAquecimento(
+                    aquecimentoAtivo = uiState.aquecimentoAtivo,
+                    onToggleAquecimento = { viewModel?.alternarAquecimento(it) }
+                )
             }
 
             // 2. Seletor do Tipo (Six-Count ou Navy Seal com sugestão automática de alternância)
@@ -419,6 +456,66 @@ private fun DuracaoFixaInfoCard() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+/**
+ * Card para ativar/desativar o aquecimento opcional de 7 minutos.
+ */
+@Composable
+private fun CardAquecimento(
+    aquecimentoAtivo: Boolean,
+    onToggleAquecimento: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("card_aquecimento"),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Timer,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.warmup_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "1 min burpee → 2 min descanso → 1 min burpee → 3 min descanso",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = aquecimentoAtivo,
+                onCheckedChange = onToggleAquecimento,
+                modifier = Modifier.testTag("switch_aquecimento")
+            )
         }
     }
 }
@@ -1035,7 +1132,7 @@ private fun DialogAjusteSegundos(
 private fun WorkoutScreenPreview() {
     MaterialTheme {
         WorkoutConfigContent(
-            onIniciarTreino = { _, _ -> }
+            onIniciarTreino = { _, _, _ -> }
         )
     }
 }

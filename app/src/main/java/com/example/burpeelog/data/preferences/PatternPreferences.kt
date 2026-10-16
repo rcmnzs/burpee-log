@@ -28,4 +28,14 @@ class PatternPreferences(context: Context) {
             prefs.edit().putString("pattern_${tipo.name}", str).apply()
         }
     }
+
+    fun getAquecimentoParaTipo(tipo: TipoExercicio): Boolean {
+        val key = "warmup_${tipo.name}"
+        return prefs.getBoolean(key, false)
+    }
+
+    fun salvarAquecimentoParaTipo(tipo: TipoExercicio, ativo: Boolean) {
+        val key = "warmup_${tipo.name}"
+        prefs.edit().putBoolean(key, ativo).apply()
+    }
 }

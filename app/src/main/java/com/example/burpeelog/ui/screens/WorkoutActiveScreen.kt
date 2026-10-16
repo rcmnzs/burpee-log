@@ -23,9 +23,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
@@ -58,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,8 +69,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.R
 import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
+import com.example.burpeelog.data.model.TipoExercicio
 import com.example.burpeelog.service.WorkoutActiveState
 import com.example.burpeelog.service.WorkoutPhase
 import com.example.burpeelog.service.WorkoutSessionManager
@@ -74,7 +80,7 @@ import com.example.burpeelog.service.WorkoutSessionManager
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutActiveScreen(
-    onNavigateToSummary: (repsFeitas: Int, repsPrevistas: Int, duracaoSegundos: Int, tipo: com.example.burpeelog.data.model.TipoExercicio, padrao: List<Int>) -> Unit,
+    onNavigateToSummary: (repsFeitas: Int, repsPrevistas: Int, duracaoSegundos: Int, tipo: TipoExercicio, padrao: List<Int>) -> Unit,
     onCancelWorkout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -86,6 +92,8 @@ fun WorkoutActiveScreen(
     var showEncerrarDialog by remember { mutableStateOf(false) }
     var isDiscarding by remember { mutableStateOf(false) }
 
+    val isWarmupActive = state.phase.isWarmup || (state.phase == WorkoutPhase.PAUSED && state.previousPhaseBeforePause.isWarmup)
+
     // Manter a tela ligada enquanto o treino estiver ativo nesta tela
     DisposableEffect(Unit) {
         val window = (context as? Activity)?.window
@@ -96,7 +104,7 @@ fun WorkoutActiveScreen(
     }
 
     // Interceptar botão voltar físico do Android para exibir confirmação
-    BackHandler(enabled = state.phase == WorkoutPhase.RUNNING || state.phase == WorkoutPhase.PAUSED) {
+    BackHandler(enabled = isWarmupActive || state.phase == WorkoutPhase.ACTIVE || state.phase == WorkoutPhase.PAUSED) {
         showEncerrarDialog = true
     }
 
@@ -127,12 +135,18 @@ fun WorkoutActiveScreen(
                                 .clip(CircleShape)
                                 .background(
                                     if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.error
+                                    else if (isWarmupActive) MaterialTheme.colorScheme.tertiary
                                     else MaterialTheme.colorScheme.primary
                                 )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
+                        val tituloTopBar = when {
+                            state.phase == WorkoutPhase.PAUSED -> stringResource(R.string.workout_paused_badge)
+                            isWarmupActive -> stringResource(R.string.warmup_title)
+                            else -> stringResource(R.string.session_in_progress)
+                        }
                         Text(
-                            text = if (state.phase == WorkoutPhase.PAUSED) "Treino Pausado" else "Treino em Andamento",
+                            text = tituloTopBar,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -161,144 +175,232 @@ fun WorkoutActiveScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (state.phase) {
-                WorkoutPhase.COUNTDOWN -> {
+            when {
+                state.phase == WorkoutPhase.COUNTDOWN -> {
                     // Contagem regressiva de 5 segundos
                     CountdownView(countdown = state.countdownSeconds, tipoTitulo = state.tipo.titulo)
                 }
-                WorkoutPhase.RUNNING, WorkoutPhase.PAUSED, WorkoutPhase.FINISHED, WorkoutPhase.COMPLETED, WorkoutPhase.STOPPED_EARLY -> {
-                    // Tela principal do treino ativo
-                    ActiveWorkoutView(
+                isWarmupActive -> {
+                    // Tela de Aquecimento (fases 1 a 4)
+                    WarmupWorkoutView(
                         state = state,
                         onPauseToggle = {
-                            if (state.phase == WorkoutPhase.RUNNING) {
-                                sessionManager.pauseWorkout()
-                            } else {
+                            if (state.phase == WorkoutPhase.PAUSED) {
                                 sessionManager.resumeWorkout()
+                            } else {
+                                sessionManager.pauseWorkout()
                             }
                         },
                         onEncerrarClick = { showEncerrarDialog = true }
                     )
                 }
-                WorkoutPhase.IDLE -> {
-                    // Estado ocioso (caso tenha sido resetado)
+                state.phase == WorkoutPhase.ACTIVE || state.phase == WorkoutPhase.PAUSED ||
+                state.phase == WorkoutPhase.FINISHED || state.phase == WorkoutPhase.COMPLETED ||
+                state.phase == WorkoutPhase.STOPPED_EARLY -> {
+                    // Tela principal do treino ativo (20 min)
+                    ActiveWorkoutView(
+                        state = state,
+                        onPauseToggle = {
+                            if (state.phase == WorkoutPhase.PAUSED) {
+                                sessionManager.resumeWorkout()
+                            } else {
+                                sessionManager.pauseWorkout()
+                            }
+                        },
+                        onEncerrarClick = { showEncerrarDialog = true }
+                    )
+                }
+                state.phase == WorkoutPhase.IDLE -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Nenhum treino em andamento", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.no_workouts_logged), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         }
     }
 
-    // Diálogo de confirmação de encerramento com três opções
+    // Diálogo de confirmação de encerramento
     if (showEncerrarDialog) {
-        val tempoDecorrido = state.tempoDecorridoSegundos.takeIf { it > 0 } ?: state.elapsedSeconds
-        val repsFeitas = state.repsFeitasCalculadas.takeIf { it > 0 } ?: state.currentRepDisplay
-        val minutos = tempoDecorrido / 60
-        val segundos = tempoDecorrido % 60
-
-        AlertDialog(
-            onDismissRequest = { showEncerrarDialog = false },
-            modifier = Modifier.testTag("dialog_encerrar_treino"),
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Stop,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(36.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = "Encerrar Treino",
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Tempo realizado: ${minutos}m ${segundos}s (${state.tempoFormatado} restantes)."
+        if (isWarmupActive) {
+            // Diálogo específico do aquecimento: perguntar se quer pular ou cancelar tudo
+            AlertDialog(
+                onDismissRequest = { showEncerrarDialog = false },
+                modifier = Modifier.testTag("dialog_encerrar_aquecimento"),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
                     )
+                },
+                title = {
                     Text(
-                        text = "Repetições feitas: $repsFeitas de ${state.totalRepsPrevistas} reps."
+                        text = stringResource(R.string.dialog_warmup_finish_title),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                },
+                text = {
                     Text(
-                        text = "Escolha como deseja prosseguir com a sessão:",
+                        text = stringResource(R.string.dialog_warmup_finish_desc),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-            },
-            confirmButton = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Opção 1: Salvar parcial
-                    Button(
-                        onClick = {
-                            showEncerrarDialog = false
-                            sessionManager.finalizarSessao(isEarly = true)
-                            val finalState = sessionManager.state.value
-                            onNavigateToSummary(
-                                finalState.repsFeitasCalculadas,
-                                finalState.totalRepsPrevistas,
-                                finalState.tempoDecorridoSegundos,
-                                finalState.tipo,
-                                finalState.padrao
-                            )
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_salvar_parcial")
+                },
+                confirmButton = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Salvar parcial")
-                    }
+                        Button(
+                            onClick = {
+                                showEncerrarDialog = false
+                                sessionManager.skipWarmup()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_pular_aquecimento"),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(imageVector = Icons.Default.SkipNext, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.btn_skip_warmup))
+                        }
 
-                    // Opção 2: Descartar treino
-                    OutlinedButton(
-                        onClick = {
-                            isDiscarding = true
-                            showEncerrarDialog = false
-                            sessionManager.finalizarSessao(isEarly = false)
-                            onCancelWorkout()
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_descartar_treino")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error
+                        OutlinedButton(
+                            onClick = {
+                                showEncerrarDialog = false
+                                sessionManager.stopWorkout(savePartial = false)
+                                onCancelWorkout()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_cancelar_tudo"),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.btn_cancel_all))
+                        }
+
+                        TextButton(
+                            onClick = { showEncerrarDialog = false },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_continuar_aquecimento")
+                        ) {
+                            Text(stringResource(R.string.btn_continue_warmup))
+                        }
+                    }
+                },
+                dismissButton = null
+            )
+        } else {
+            // Diálogo do treino principal (salvar parcial / descartar / continuar)
+            val tempoDecorrido = state.tempoDecorridoSegundos.takeIf { it > 0 } ?: state.elapsedSeconds
+            val repsFeitas = state.repsFeitasCalculadas.takeIf { it > 0 } ?: state.currentRepDisplay
+            val minutos = tempoDecorrido / 60
+            val segundos = tempoDecorrido % 60
+
+            AlertDialog(
+                onDismissRequest = { showEncerrarDialog = false },
+                modifier = Modifier.testTag("dialog_encerrar_treino"),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(36.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.btn_finish_early),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Tempo realizado: ${minutos}m ${segundos}s (${state.tempoFormatado} restantes)."
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Descartar treino")
+                        Text(
+                            text = "Repetições feitas: $repsFeitas de ${state.totalRepsPrevistas} reps."
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Escolha como deseja prosseguir com a sessão:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
-
-                    // Opção 3: Continuar treinando
-                    TextButton(
-                        onClick = { showEncerrarDialog = false },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_continuar_treinando")
+                },
+                confirmButton = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Continuar treinando")
+                        Button(
+                            onClick = {
+                                showEncerrarDialog = false
+                                sessionManager.finalizarSessao(isEarly = true)
+                                val finalState = sessionManager.state.value
+                                onNavigateToSummary(
+                                    finalState.repsFeitasCalculadas,
+                                    finalState.totalRepsPrevistas,
+                                    finalState.tempoDecorridoSegundos,
+                                    finalState.tipo,
+                                    finalState.padrao
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_salvar_parcial")
+                        ) {
+                            Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Salvar parcial")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                isDiscarding = true
+                                showEncerrarDialog = false
+                                sessionManager.finalizarSessao(isEarly = false)
+                                onCancelWorkout()
+                            },
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_descartar_treino")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Descartar treino")
+                        }
+
+                        TextButton(
+                            onClick = { showEncerrarDialog = false },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_continuar_treinando")
+                        ) {
+                            Text("Continuar treinando")
+                        }
                     }
-                }
-            },
-            dismissButton = null
-        )
+                },
+                dismissButton = null
+            )
+        }
     }
 }
 
@@ -318,7 +420,7 @@ private fun CountdownView(countdown: Int, tipoTitulo: String) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "PREPARE-SE",
+                text = stringResource(R.string.get_ready).uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.secondary,
@@ -333,7 +435,6 @@ private fun CountdownView(countdown: Int, tipoTitulo: String) {
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Círculo grande com o número 5..1
             Box(
                 modifier = Modifier
                     .size(180.dp)
@@ -356,7 +457,7 @@ private fun CountdownView(countdown: Int, tipoTitulo: String) {
 
             Spacer(modifier = Modifier.height(32.dp))
             Text(
-                text = "A primeira repetição começa no segundo 0!",
+                text = stringResource(R.string.first_rep_info),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -365,7 +466,393 @@ private fun CountdownView(countdown: Int, tipoTitulo: String) {
 }
 
 /**
- * Visualização do Treino Ativo com cronômetro grande, Rep X de Y, indicador de próxima rep e controles.
+ * Visualização dedicada para as fases do Aquecimento (7 minutos).
+ * Fases:
+ * 1. WARMUP_BURPEE_1 (1 min)
+ * 2. WARMUP_REST_1 (2 min)
+ * 3. WARMUP_BURPEE_2 (1 min)
+ * 4. WARMUP_REST_2 (3 min)
+ */
+@Composable
+private fun WarmupWorkoutView(
+    state: WorkoutActiveState,
+    onPauseToggle: () -> Unit,
+    onEncerrarClick: () -> Unit
+) {
+    val currentEffectivePhase = if (state.phase == WorkoutPhase.PAUSED) {
+        state.previousPhaseBeforePause
+    } else {
+        state.phase
+    }
+
+    val isBurpee = currentEffectivePhase.isWarmupBurpee
+    val isLastRest = currentEffectivePhase == WorkoutPhase.WARMUP_REST_2
+
+    val badgeText = if (isBurpee) {
+        stringResource(R.string.warmup_burpees_badge)
+    } else {
+        stringResource(R.string.warmup_rest_badge)
+    }
+
+    val blockDescription = when (currentEffectivePhase) {
+        WorkoutPhase.WARMUP_BURPEE_1 -> "Bloco 1 de 4 • 1 min de Burpees"
+        WorkoutPhase.WARMUP_REST_1 -> "Bloco 2 de 4 • 2 min de Descanso"
+        WorkoutPhase.WARMUP_BURPEE_2 -> "Bloco 3 de 4 • 1 min de Burpees"
+        WorkoutPhase.WARMUP_REST_2 -> "Bloco 4 de 4 • 3 min de Descanso"
+        else -> "Aquecimento"
+    }
+
+    val animatedRepProgress by animateFloatAsState(
+        targetValue = state.nextRepProgress,
+        label = "warmup_rep_progress_anim"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Cabeçalho de Destaque da Fase de Aquecimento
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = if (isBurpee) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("badge_fase_aquecimento")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (isBurpee) Icons.Default.FitnessCenter else Icons.Default.SelfImprovement,
+                        contentDescription = null,
+                        tint = if (isBurpee) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = badgeText,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isBurpee) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = blockDescription,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = if (isBurpee) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            if (state.phase == WorkoutPhase.PAUSED) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.workout_paused_badge).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+
+        // Conteúdo Central: Alterna entre Fase de Burpee e Fase de Descanso
+        if (isBurpee) {
+            // FASE DE BURPEE: mesmo cronômetro e bipes do treino principal, usando o mesmo padrão de intervalos configurado
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Cronômetro do Bloco de Burpees
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("card_cronometro_warmup_burpee"),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "TEMPO RESTANTE DO BLOCO",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = state.warmupTempoRestanteFormatado,
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.testTag("txt_cronometro_grande")
+                        )
+                    }
+                }
+
+                // Destaque da próxima repetição com círculo de progresso
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("card_rep_counter"),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp, horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "AQUECIMENTO (REPS NÃO SOMAM)",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Rep ${state.warmupRepsCompletadas}",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.testTag("txt_rep_x_de_y")
+                                )
+                            }
+                            Text(
+                                text = if (state.secondsUntilNextRep > 0) {
+                                    "Próxima em ${state.secondsUntilNextRep}s"
+                                } else {
+                                    "Aguardando..."
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.testTag("txt_proxima_rep_em")
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .size(164.dp)
+                                .testTag("indicator_next_rep_progress"),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = { 1f },
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                strokeWidth = 12.dp
+                            )
+                            CircularProgressIndicator(
+                                progress = { animatedRepProgress },
+                                modifier = Modifier.fillMaxSize(),
+                                color = MaterialTheme.colorScheme.secondary,
+                                strokeWidth = 12.dp,
+                                strokeCap = StrokeCap.Round
+                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "${state.secondsUntilNextRep}s",
+                                    style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"),
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                                Text(
+                                    text = "PRÓXIMA REP",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // FASE DE DESCANSO: cronômetro regressivo grande, sem bipes, sem vibração,
+            // exibe "Treino começa em X:XX" quando o último bloco de descanso terminar
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("card_cronometro_descanso"),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 28.dp, horizontal = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "DESCANSO E RECUPERAÇÃO",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = state.warmupTempoRestanteFormatado,
+                            fontSize = 64.sp,
+                            fontWeight = FontWeight.Black,
+                            fontFamily = FontFamily.Monospace,
+                            color = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.testTag("txt_cronometro_grande")
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Respire fundo, relaxe os músculos e prepare-se.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                // Destaque "Treino começa em X:XX" (exibido na fase de descanso final)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("txt_treino_comeca_em")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Timer,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = if (isLastRest) "PREPARE-SE PARA OS 20 MINUTOS" else "AQUECIMENTO EM PROGRESSO",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            val textoContagem = stringResource(R.string.workout_starts_in, state.warmupTempoRestanteFormatado)
+                            Text(
+                                text = if (isLastRest) textoContagem else "Treino principal logo após os descansos",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Botões de Ação na parte inferior: Pausar e Encerrar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Button(
+                onClick = onPauseToggle,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(60.dp)
+                    .testTag("btn_pausar_retomar"),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (state.phase == WorkoutPhase.PAUSED) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = if (state.phase == WorkoutPhase.PAUSED) Icons.Default.PlayArrow else Icons.Default.Pause,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (state.phase == WorkoutPhase.PAUSED) stringResource(R.string.btn_resume) else stringResource(R.string.btn_pause),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            OutlinedButton(
+                onClick = onEncerrarClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(60.dp)
+                    .testTag("btn_encerrar"),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Stop,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.btn_finish),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Visualização do Treino Ativo Principal de 20 minutos com cronômetro grande, Rep X de Y, indicador de próxima rep e controles.
  */
 @Composable
 private fun ActiveWorkoutView(
@@ -429,9 +916,7 @@ private fun ActiveWorkoutView(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
                 .testTag("card_cronometro_principal"),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             shape = RoundedCornerShape(20.dp)
         ) {
             Column(
@@ -449,7 +934,6 @@ private fun ActiveWorkoutView(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
 
-                // Cronômetro regressivo mm:ss (legível, mantendo hierarquia com o timer de repetições em destaque)
                 Text(
                     text = state.tempoFormatado,
                     fontSize = 42.sp,
@@ -468,7 +952,7 @@ private fun ActiveWorkoutView(
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "PAUSADO",
+                            text = stringResource(R.string.workout_paused_badge).uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error
@@ -483,9 +967,7 @@ private fun ActiveWorkoutView(
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("card_rep_counter"),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(24.dp)
         ) {
             Column(
@@ -494,7 +976,6 @@ private fun ActiveWorkoutView(
                     .padding(vertical = 18.dp, horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Header da Contagem de Repetições
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -531,7 +1012,6 @@ private fun ActiveWorkoutView(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Elemento em destaque máximo: Timer regressivo da próxima repetição (~dobro do tamanho anterior de 80.dp -> 164.dp)
                 Box(
                     modifier = Modifier
                         .size(164.dp)
@@ -551,14 +1031,10 @@ private fun ActiveWorkoutView(
                         strokeWidth = 12.dp,
                         strokeCap = StrokeCap.Round
                     )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "${state.secondsUntilNextRep}s",
-                            style = MaterialTheme.typography.displayMedium.copy(
-                                fontFeatureSettings = "tnum"
-                            ),
+                            style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"),
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
@@ -584,7 +1060,6 @@ private fun ActiveWorkoutView(
                 .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Botão Pausar / Retomar
             Button(
                 onClick = onPauseToggle,
                 modifier = Modifier
@@ -604,13 +1079,12 @@ private fun ActiveWorkoutView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (state.phase == WorkoutPhase.PAUSED) "Retomar" else "Pausar",
+                    text = if (state.phase == WorkoutPhase.PAUSED) stringResource(R.string.btn_resume) else stringResource(R.string.btn_pause),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // Botão Encerrar
             OutlinedButton(
                 onClick = onEncerrarClick,
                 modifier = Modifier
@@ -630,7 +1104,7 @@ private fun ActiveWorkoutView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Encerrar",
+                    text = stringResource(R.string.btn_finish),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

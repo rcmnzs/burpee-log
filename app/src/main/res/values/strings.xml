@@ -81,6 +81,20 @@
     <string name="total_duration_label">Total: %1$d minutes</string>
     <string name="btn_start_session">Start 20-Min Session</string>
 
+    <!-- Warmup -->
+    <string name="warmup_title">Warmup (7 min)</string>
+    <string name="warmup_flow_summary">Warmup: 1 min burpee → 2 min rest → 1 min burpee → 3 min rest → workout (20 min)</string>
+    <string name="btn_start_warmup_active">Start (27 min)</string>
+    <string name="btn_start_standard">Start (20 min)</string>
+    <string name="warmup_burpees_badge">Warmup — Burpees</string>
+    <string name="warmup_rest_badge">Warmup — Rest</string>
+    <string name="workout_starts_in">Workout starts in %1$s</string>
+    <string name="dialog_warmup_finish_title">Warmup in progress</string>
+    <string name="dialog_warmup_finish_desc">Do you want to skip the warmup and go straight to the workout, or cancel everything?</string>
+    <string name="btn_skip_warmup">Skip warmup &amp; start workout</string>
+    <string name="btn_cancel_all">Cancel everything</string>
+    <string name="btn_continue_warmup">Continue warmup</string>
+
     <!-- Active Workout -->
     <string name="session_in_progress">Session in Progress</string>
     <string name="get_ready">Get Ready!</string>
