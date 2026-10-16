@@ -8,27 +8,32 @@ import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.R
 
 enum class NavTab(
+    val titleRes: Int,
     val title: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val testTag: String
 ) {
     INICIO(
-        title = "Início",
+        titleRes = R.string.tab_inicio,
+        title = "Home",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
         testTag = "tab_inicio"
     ),
     TREINO(
-        title = "Treino",
+        titleRes = R.string.tab_treino,
+        title = "Workout",
         selectedIcon = Icons.Filled.FitnessCenter,
         unselectedIcon = Icons.Outlined.FitnessCenter,
         testTag = "tab_treino"
     ),
     HISTORICO(
-        title = "Histórico",
+        titleRes = R.string.tab_historico,
+        title = "History",
         selectedIcon = Icons.Filled.History,
         unselectedIcon = Icons.Outlined.History,
         testTag = "tab_historico"

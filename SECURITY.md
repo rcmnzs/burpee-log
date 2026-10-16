@@ -1,46 +1,46 @@
-# Política de Segurança - Burpee Log
+# Security Policy - Burpee Log
 
-Este documento descreve as diretrizes de segurança, o modelo de ameaças e o processo para reportar vulnerabilidades do aplicativo **Burpee Log**.
-
----
-
-## 1. Modelo de Ameaças (Threat Model)
-
-O **Burpee Log** é um aplicativo Android desenvolvido em Kotlin e Jetpack Compose, voltado para registro de treinos dos métodos *Six-Count* e *Navy Seal* do programa *Busy Dad Training*.
-
-### Características Principais de Arquitetura:
-- **100% Offline:** O aplicativo não requer nem solicita permissão de rede (`android.permission.INTERNET`). Não há servidores, endpoints remotos, telemetria de terceiros, Firebase nem comunicação com nuvem. Plugins e dependências do Google Services / Firebase foram totalmente removidos do projeto.
-- **Armazenamento Estritamente Local:** Todos os dados de treinos são persistidos no banco de dados local Room (`burpee_log.db`), localizado no diretório interno seguro da aplicação (`MODE_PRIVATE`), isolado pela sandbox do Android (Linux UID separation) e criptografado por hardware via File-Based Encryption (FBE) nativo do Android.
-- **Sem Autenticação Externa:** Não são mantidas credenciais, senhas, chaves de API nem tokens de sessão.
-- **Exportação e Compartilhamento Controlados:** Arquivos CSV gerados para exportação são gravados exclusivamente no subdiretório isolado de cache `csv_exports/` e compartilhados via `FileProvider` restrito, com permissões temporárias de leitura (`FLAG_GRANT_READ_URI_PERMISSION`).
-- **Defesa em Profundidade contra Injeção de Fórmulas:** Valores exportados em formato CSV passam por neutralização automática de caracteres que poderiam executar comandos em planilhas externas (Google Sheets, Microsoft Excel ou LibreOffice).
+This document describes the security guidelines, threat model, and vulnerability reporting process for the **Burpee Log** Android application.
 
 ---
 
-## 2. Postura e Controles de Segurança Implementados (OWASP MASVS / Mobile Top 10)
+## 1. Threat Model
 
-| Categoria OWASP | Controle Implementado no Burpee Log |
+**Burpee Log** is an Android application developed with Kotlin and Jetpack Compose, designed to log *Six-Count* and *Navy Seal* burpee sessions under the *Busy Dad Training* protocol.
+
+### Key Architectural Characteristics:
+- **100% Offline:** The application neither requests nor requires network access (`android.permission.INTERNET`). There are no backend servers, remote APIs, third-party analytics/telemetry, Firebase services, or cloud synchronization. Google Services and Firebase plugins and dependencies have been completely removed from the project.
+- **Strictly Local Storage:** All workout data is persisted inside a local Room SQLite database (`burpee_log.db`), stored within the app's secure internal storage directory (`MODE_PRIVATE`), isolated by Android's application sandbox (Linux UID separation), and protected by native hardware-backed File-Based Encryption (FBE).
+- **No External Authentication:** The app does not manage or store credentials, passwords, API keys, or session tokens.
+- **Controlled Export & Sharing:** Exported CSV files are written exclusively to a scoped cache subfolder (`csv_exports/`) and shared via a restricted `FileProvider` with temporary read-only permissions (`FLAG_GRANT_READ_URI_PERMISSION`).
+- **Formula Injection Defense in Depth:** All CSV export values undergo automatic character sanitization to prevent formula injection execution in external spreadsheet applications (Google Sheets, Microsoft Excel, LibreOffice).
+
+---
+
+## 2. Security Posture and Implemented Controls (OWASP MASVS / Mobile Top 10)
+
+| OWASP Category | Implemented Control in Burpee Log |
 | :--- | :--- |
-| **M1: Credenciais** | Ausência total de segredos, chaves ou tokens no repositório e código-fonte. |
-| **M2: Cadeia de Suprimentos** | Dependências estritamente necessárias fixadas no Gradle. Bibliotecas de rede desnecessárias removidas/comentadas. |
-| **M3: Autenticação & Componentes** | Componentes exportados minimizados (`MainActivity` como único ponto de entrada para o Launcher). Serviços e Provedores não-exportados (`android:exported="false"`). |
-| **M4: Validação de Entrada & Saída** | Parser de CSV com limites estritos de tamanho (máx. 2 MB, 10.000 linhas, 1.000 caracteres por linha), validação de limites de repetições (0 a 5.000), validação de datas (ano 2000 até data atual) e neutralização de injeção de fórmulas CSV (`=`, `+`, `-`, `@`, `\t`, `\r`). Consultas Room 100% parametrizadas. |
-| **M5: Comunicação de Rede** | Sem permissão de internet. `android:usesCleartextTraffic="false"` ativado no manifesto. |
-| **M6: Privacidade** | Princípio do menor privilégio em permissões. Nenhum dado sensível em logs ou notificações. Notificação de treino não persistente após o encerramento. |
-| **M7: Proteção do Binário** | R8/ProGuard com minificação (`isMinifyEnabled = true`) e remoção de recursos não usados (`isShrinkResources = true`) ativados no build release. |
-| **M8: Configuração de Segurança** | Regras explícitas de extração de dados e backup (`data_extraction_rules.xml` e `backup_rules.xml`) protegendo arquivos de cache e permitindo apenas a base de dados oficial. |
-| **M9: Armazenamento Seguro** | Base Room interna em sandbox privada. FileProvider restrito ao diretório `csv_exports/`. |
-| **M10: Criptografia** | Criptografia em repouso garantida pelo SO Android (File-Based Encryption). Sem criptografia de software fraca ou customizada. |
+| **M1: Credentials** | Zero secrets, private keys, or access tokens in repository or source code. |
+| **M2: Supply Chain** | Minimal set of trusted dependencies pinned in Gradle. Unused networking and tracking libraries removed. |
+| **M3: Authentication & Components** | Minimized exported attack surface (`MainActivity` is the sole exported activity for Launcher). Services and Content Providers are non-exported (`android:exported="false"`). |
+| **M4: Input & Output Validation** | Strict CSV parser safeguards (max 2 MB size, 10,000 rows, 1,000 characters per row), rep count boundary enforcement (0 to 5,000), date bounds checking (year 2000 to current date), and CSV formula injection neutralization (`=`, `+`, `-`, `@`, `\t`, `\r`). 100% parameterized Room queries. |
+| **M5: Network Communication** | Zero internet permissions. `android:usesCleartextTraffic="false"` enforced in AndroidManifest.xml. |
+| **M6: Privacy** | Principle of least privilege. No sensitive telemetry or logs. Ongoing workout notification auto-dismisses upon workout completion. |
+| **M7: Binary Protection** | R8/ProGuard code minification (`isMinifyEnabled = true`) and resource shrinking (`isShrinkResources = true`) enabled for release builds. |
+| **M8: Security Configuration** | Explicit backup and data extraction configurations (`data_extraction_rules.xml` and `backup_rules.xml`) preventing extraction of cache files and restricting backups to the primary database. |
+| **M9: Secure Storage** | Internal Room database stored within private app sandbox. FileProvider strictly scoped to the `csv_exports/` directory. |
+| **M10: Cryptography** | Data at rest protected by Android OS hardware-backed File-Based Encryption (FBE). No custom or weak software crypto implementations. |
 
 ---
 
-## 3. Como Reportar Vulnerabilidades
+## 3. Reporting a Vulnerability
 
-Agradecemos a colaboração da comunidade de segurança para manter o Burpee Log seguro.
+We welcome contributions from the security community to keep Burpee Log safe.
 
-Se você identificou uma vulnerabilidade de segurança:
-1. **Mensagem Privada / Security Advisory:** Preferencialmente, abra uma solicitação através do recurso de **Security Advisory privado do repositório no GitHub**.
-2. **Issues do GitHub:** Caso o repositório não disponha de advisories privados, abra uma Issue rotulada como `[Segurança]` detalhando os passos para reprodução, versão do aplicativo e impacto identificado.
-3. **Prazo de Resposta:** Nossa meta é avaliar e responder a notificações de vulnerabilidade em até 48 horas úteis.
+If you have discovered a potential security vulnerability:
+1. **GitHub Security Advisory:** Please submit a report through GitHub's **private Security Advisory feature**.
+2. **GitHub Issues:** If private advisories are unavailable, open an issue tagged `[Security]` providing reproduction steps, app version, and identified impact.
+3. **Response Time:** We aim to review and acknowledge vulnerability reports within 48 business hours.
 
-Por favor, não divulgue publicamente detalhes técnicos de uma vulnerabilidade antes que uma correção esteja disponível.
+Please refrain from publicly disclosing vulnerability details until an official patch or release has been published.

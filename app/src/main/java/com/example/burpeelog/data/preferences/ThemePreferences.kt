@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
-enum class AppTheme(val rotulo: String) {
-    ESCURO("Escuro"),
-    CLARO("Claro"),
-    SEGUIR_SISTEMA("Automático")
+enum class AppTheme(val labelRes: Int, val rotulo: String) {
+    ESCURO(com.example.R.string.theme_dark, "Escuro"),
+    CLARO(com.example.R.string.theme_light, "Claro"),
+    SEGUIR_SISTEMA(com.example.R.string.theme_system, "Automático")
 }
 
 private val Context.themeDataStore: DataStore<Preferences> by preferencesDataStore(name = "theme_preferences")

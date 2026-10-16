@@ -1,78 +1,78 @@
 # Changelog
 
-Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
+All notable changes to this project will be documented in this file.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.5] - 2026-10-14
 
-### Adicionado
-- Opção de tema claro, escuro ou automático nas configurações
+### Added
+- Option to select Light, Dark, or System Automatic theme in settings
 
-### Corrigido
-- Cabeçalho das telas não colide mais com a barra de notificações
+### Fixed
+- Screen headers no longer collide or overlap with the system notification/status bar
 
 ## [1.0.4] - 2026-10-14
 
-### Corrigido
-- Sessão parcial agora grava o tempo real treinado em vez de 20 minutos
+### Fixed
+- Partial workout sessions now log actual elapsed training duration instead of defaulting to 20 minutes
 
 ## [1.0.3] - 2026-10-14
 
-### Adicionado
-- Duração da sessão visível e editável no Histórico
-- Minutos da semana agora somam a duração real das sessões
+### Added
+- Workout session duration is now visible and editable in History
+- Weekly active minutes now tally the real duration of all completed sessions
 
 ## [1.0.2] - 2026-10-13
 
-### Adicionado
-- Encerrar o treino agora para o cronômetro e preenche as repetições automaticamente
-- Timer da próxima repetição maior
+### Added
+- Ending workout session now stops the timer and automatically prefills target repetitions
+- Increased size and visual emphasis of the next-rep interval countdown timer
 
 ## [1.0.1] - 2026-10-12
 
-### Corrigido
-- Correções de layout e ajustes de interface:
-  - **Geral**: Distribuição uniforme de botões e chips com `Modifier.weight(1f)`, `maxLines = 1` e `TextOverflow.Ellipsis`, prevenindo quebras e cortes de texto em telas de 360dp e fontes ampliadas (fontScale 1.3 e 1.5).
-  - **Início**: Alinhamento vertical dos rótulos dos dias (Seg, Qua, Sex, Dom) ao centro das linhas do mapa de calor e exibição dos rótulos de mês em 3 letras (Jan, Fev, Mar, etc.) sem truncar.
-  - **Configurar Sessão**: Botão "Adicionar Minuto" posicionado abaixo do título ocupando a largura inteira e ajuste de segundos com botões de altura e largura uniformes (-5s, -1s, valor, +1s, +5s). Correção do inset/padding no topo do cabeçalho.
-  - **Histórico**: Filtros com mesma altura em uma linha, legenda do gráfico em linha própria abaixo do título, remoção do "+" redundante no cabeçalho mantendo apenas o FAB com padding inferior na lista, remoção do bloco de observação quando ausente e exibição apenas da data em sessões importadas.
-  - **Diálogo Adicionar Sessão Passada**: Chips de data com `FlowRow` e seletor de datas (`DatePicker`), data exibida clicável com texto "Escolher outra data" e estilo idêntico nos chips de Six-Count e Navy Seal.
-  - **Previews**: Adicionados `@Preview` com `fontScale = 1.5f` para as telas principais.
+### Fixed
+- UI layout adjustments and responsive fixes:
+  - **General**: Even distribution of action buttons and filter chips using `Modifier.weight(1f)`, `maxLines = 1`, and `TextOverflow.Ellipsis`, preventing text wrapping or clipping on 360dp devices and enlarged system font scales (1.3x and 1.5x).
+  - **Home**: Vertical centering of day labels (Mon, Wed, Fri, Sun) aligned with heatmap rows, and 3-letter month labels (Jan, Feb, Mar, etc.) displayed without truncation.
+  - **Workout Configuration**: "Add Minute" button placed full-width under the section title, and second interval adjustment with uniform button dimensions (-5s, -1s, value, +1s, +5s). Corrected top header insets.
+  - **History**: Uniform height for category filters in a single row, chart legend placed on its own row below the title, removed redundant "+" header button in favor of the bottom list FAB, hidden empty observation blocks, and displayed clean dates for imported sessions.
+  - **Log Past Session Dialog**: Date chips arranged with `FlowRow` and native `DatePicker`, clickable date display with "Choose another date", and identical styling across Six-Count and Navy Seal chips.
+  - **Previews**: Added `@Preview` configurations with `fontScale = 1.5f` across key screens.
 
 ## [1.0.0] - 2026-10-12
 
-### Lançamento Inicial
+### Initial Release
 
-Primeira versão oficial do **Burpee Log**, aplicativo Android offline e focado em privacidade para praticantes do Busy Dad Program.
+First official release of **Burpee Log**, a private, offline Android workout tracker designed for practitioners of the Busy Dad Program.
 
-#### Funcionalidades
-- **Cronômetro de 20 minutos com Intervalos Dinâmicos**:
-  - Sessões estruturadas de 20 minutos com contagem regressiva e indicação de repetição.
-  - Padrões flexíveis de cadência (ex.: `[10]` para uma repetição a cada 10s, ou `[30, 20]` para alternância minuto a minuto).
-  - Cálculo automático das repetições previstas com base na cadência configurada.
-  - Alertas sonoros (bips em tons distintos) e retorno tátil via vibração a cada repetição.
-  - Suporte à execução em segundo plano com a tela desligada através de Foreground Service com notificação persistente.
-- **Resumo e Registro da Sessão**:
-  - Ajuste rápido das repetições efetivamente realizadas ao final do treino.
-  - Campo de anotações opcionais para registrar percepção de esforço, ritmo ou comentários.
-- **Painel de Progresso & Estatísticas**:
-  - Gráfico de mapa de calor estilo GitHub cobrindo os últimos 12 meses, com coloração proporcional ao recorde pessoal do dia.
-  - Filtro do mapa de calor por Six-Count, Navy Seal ou ambos combinados.
-  - Acompanhamento semanal de minutos (meta de 80 minutos / 4 sessões por semana).
-  - Contador de sequência de semanas consecutivas completadas (streak).
-  - Total geral de repetições e recorde pessoal (PR) para Six-Count e Navy Seal.
-- **Histórico e Gestão de Treinos**:
-  - Lista completa de sessões com filtragem por exercício.
-  - Gráfico de evolução do desempenho ao longo do tempo.
-  - Edição de repetições e observações de treinos anteriores, além de exclusão de registros.
-- **Importação e Exportação de Dados**:
-  - Importação de treinos via arquivo CSV (formatos de data `dd/MM/yyyy` e `yyyy-MM-dd`).
-  - Pré-visualização com detecção e descarte automático de duplicidades antes de salvar.
-  - Exportação de backup completo em CSV com proteção contra injeção de fórmulas de planilhas.
-- **Segurança e Privacidade**:
-  - 100% offline: sem permissão de acesso à internet (`INTERNET`), sem bibliotecas de rastreamento ou telemetria.
-  - Sem necessidade de cadastro, autenticação ou login em nuvem.
-  - Banco de dados local seguro com Room (SQLite) no armazenamento interno do app.
-  - Validação estrita de limites numéricos e sanitização de dados no parser CSV.
-  - Build de release protegido com minificação, ofuscação (R8/Proguard) e encolhimento de recursos.
+#### Features
+- **20-Minute Timer with Dynamic Cadence**:
+  - Structured 20-minute sessions with interval countdown and rep counters.
+  - Flexible repetition cadence patterns (e.g., `[10]` for 1 rep every 10s, or `[30, 20]` for minute-by-minute variation).
+  - Automatic calculation of target reps based on configured intervals.
+  - Multi-tone audio cues and haptic vibration feedback on every repetition.
+  - Background execution support with screen locked/off via Android Foreground Service with a persistent notification.
+- **Session Summary & Logging**:
+  - Fast adjustment of completed repetitions at the end of each session.
+  - Optional notes field to track perceived exertion, pace, or reflections.
+- **Progress Dashboard & Analytics**:
+  - GitHub-style 12-month activity heatmap shaded proportionally to personal daily records.
+  - Activity filter for Six-Count, Navy Seal, or combined workouts.
+  - Weekly training minutes tracking (80-minute goal / 4 sessions per week).
+  - Streak counter tracking consecutive completed training weeks.
+  - Total reps counter and all-time personal records (PR) for Six-Count and Navy Seal.
+- **History & Workout Management**:
+  - Complete list of past sessions with filter by exercise type.
+  - Interactive progression line charts over time.
+  - Inline editing of past repetitions, duration, and notes, as well as record deletion.
+- **Data Import & Export**:
+  - Import historical logs via CSV files (`dd/MM/yyyy` and `yyyy-MM-dd` formats).
+  - Interactive preview with automatic deduplication before committing to the database.
+  - Full CSV backup export with built-in formula injection sanitization.
+- **Security & Privacy**:
+  - 100% offline: no `INTERNET` permission, zero third-party analytics, telemetry, or remote dependencies.
+  - No user accounts, registration, or cloud sign-in required.
+  - Secure local database using Room (SQLite) stored in private app sandbox.
+  - Strict input boundary validation and sanitization in CSV parser.
+  - Release build secured with R8/ProGuard code minification, obfuscation, and resource shrinking.

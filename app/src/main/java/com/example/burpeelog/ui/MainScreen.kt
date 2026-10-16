@@ -63,11 +63,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
                             icon = {
                                 Icon(
                                     imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
-                                    contentDescription = tab.title
+                                    contentDescription = androidx.compose.ui.res.stringResource(tab.titleRes)
                                 )
                             },
                             label = {
-                                Text(text = tab.title)
+                                Text(text = androidx.compose.ui.res.stringResource(tab.titleRes))
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.primary,

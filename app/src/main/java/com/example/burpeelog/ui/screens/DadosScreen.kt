@@ -71,8 +71,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.R
 import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.domain.CsvImportPreview
 import com.example.burpeelog.domain.CsvManager
@@ -147,7 +149,7 @@ fun DadosScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Configurações e Dados",
+                        text = stringResource(R.string.settings_and_data_title),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -159,7 +161,7 @@ fun DadosScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
+                            contentDescription = stringResource(R.string.btn_back)
                         )
                     }
                 },
@@ -211,12 +213,12 @@ fun DadosScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Aparência",
+                                text = stringResource(R.string.appearance_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Tema visual do aplicativo",
+                                text = stringResource(R.string.appearance_subtitle),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -229,11 +231,11 @@ fun DadosScreen(
                             .testTag("segmented_button_tema")
                     ) {
                         val opcoes = listOf(
-                            AppTheme.ESCURO to "Escuro",
-                            AppTheme.CLARO to "Claro",
-                            AppTheme.SEGUIR_SISTEMA to "Automático"
+                            AppTheme.ESCURO,
+                            AppTheme.CLARO,
+                            AppTheme.SEGUIR_SISTEMA
                         )
-                        opcoes.forEachIndexed { index, (tema, rotulo) ->
+                        opcoes.forEachIndexed { index, tema ->
                             SegmentedButton(
                                 selected = temaAtual == tema,
                                 onClick = {
@@ -244,7 +246,7 @@ fun DadosScreen(
                                 shape = SegmentedButtonDefaults.itemShape(index = index, count = opcoes.size),
                                 modifier = Modifier.testTag("btn_tema_${tema.name.lowercase()}")
                             ) {
-                                Text(text = rotulo, maxLines = 1)
+                                Text(text = stringResource(tema.labelRes), maxLines = 1)
                             }
                         }
                     }
