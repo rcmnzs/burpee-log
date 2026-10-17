@@ -58,6 +58,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -148,12 +151,12 @@ fun HomeScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Burpee Log",
+                            text = stringResource(R.string.app_name),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge
                         )
                         Text(
-                            text = "Busy Dad Program • Dashboard",
+                            text = stringResource(R.string.app_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -166,7 +169,7 @@ fun HomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Configurações e Dados",
+                            contentDescription = stringResource(R.string.settings_and_data_title),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -207,7 +210,7 @@ fun HomeScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Iniciar Treino (20 min)",
+                    text = stringResource(R.string.btn_start_standard),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -262,7 +265,7 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Text(
-                        text = "MAPA DE REPETIÇÕES (12 MESES)",
+                        text = stringResource(R.string.heatmap_section_title),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -356,14 +359,14 @@ private fun CardMetaSemanal(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Semana Atual (Seg a Dom)",
+                            text = stringResource(R.string.current_week_label),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "$minutosSemana / 80 min",
+                            text = stringResource(R.string.weekly_minutes_format, minutosSemana),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -371,10 +374,14 @@ private fun CardMetaSemanal(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = when (sessoesSemana) {
-                                0 -> "Nenhuma sessão realizada"
-                                1 -> "1 sessão realizada"
-                                else -> "$sessoesSemana sessões realizadas"
+                            text = if (sessoesSemana == 0) {
+                                stringResource(R.string.no_workouts_logged)
+                            } else {
+                                pluralStringResource(
+                                    R.plurals.sessions_completed_count,
+                                    sessoesSemana,
+                                    sessoesSemana
+                                )
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -434,7 +441,7 @@ private fun CardStreak(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "SEQUÊNCIA",
+                    text = stringResource(R.string.streak_label),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -444,7 +451,7 @@ private fun CardStreak(
             }
 
             Text(
-                text = "$streakSemanas ${if (streakSemanas == 1) "semana" else "semanas"}",
+                text = pluralStringResource(R.plurals.weeks_streak_count, streakSemanas, streakSemanas),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.primary,
@@ -453,7 +460,7 @@ private fun CardStreak(
             )
 
             Text(
-                text = "Metas de 80 min seguidas",
+                text = stringResource(R.string.streak_subtitle),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -491,7 +498,7 @@ private fun CardTotalAno(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "TOTAL EM $ano",
+                    text = stringResource(R.string.total_in_year, ano),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -505,11 +512,11 @@ private fun CardTotalAno(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = stringResource(R.string.six_count_short), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = "$repsSix", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = stringResource(R.string.navy_seal_short), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = "$repsNavy", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -560,14 +567,14 @@ private fun CardRecordes(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Recordes em 1 Sessão",
+                        text = stringResource(R.string.records_single_session_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "Máximo de reps em 20 min",
+                        text = stringResource(R.string.records_single_session_subtitle),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -579,11 +586,11 @@ private fun CardRecordes(
             Spacer(modifier = Modifier.width(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "6-Count", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = stringResource(R.string.six_count_short), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = if (recordeSix > 0) "$recordeSix reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "Navy Seal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(text = stringResource(R.string.navy_seal_short), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = if (recordeNavy > 0) "$recordeNavy reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -616,7 +623,11 @@ private fun SeletorModoHeatmap(
                 )
             ) {
                 Text(
-                    text = modo.rotulo,
+                    text = when (modo) {
+                        HeatmapMode.SIX_COUNT -> stringResource(R.string.six_count_short)
+                        HeatmapMode.NAVY_SEAL -> stringResource(R.string.navy_seal_short)
+                        HeatmapMode.AMBOS -> stringResource(R.string.both_exercises)
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

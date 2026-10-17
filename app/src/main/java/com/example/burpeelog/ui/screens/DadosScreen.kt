@@ -1,13 +1,14 @@
 package com.example.burpeelog.ui.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,12 +26,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,9 +38,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +52,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import com.example.burpeelog.data.preferences.AppTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,16 +63,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.R
 import com.example.burpeelog.BurpeeLogApplication
+import com.example.burpeelog.data.preferences.AppLanguage
+import com.example.burpeelog.data.preferences.AppTheme
 import com.example.burpeelog.domain.CsvImportPreview
 import com.example.burpeelog.domain.CsvManager
 import kotlinx.coroutines.Dispatchers
@@ -96,6 +96,7 @@ fun DadosScreen(
 
     val todasSessoes by repository.allSessoes.collectAsStateWithLifecycle(emptyList())
     val temaAtual by app.themePreferences.temaFlow.collectAsStateWithLifecycle(initialValue = AppTheme.ESCURO)
+    val idiomaAtual by app.localePreferences.idiomaFlow.collectAsStateWithLifecycle(initialValue = AppLanguage.AUTO)
 
     var previewImportacao by remember { mutableStateOf<CsvImportPreview?>(null) }
     var isImportando by remember { mutableStateOf(false) }
@@ -127,15 +128,15 @@ fun DadosScreen(
                         }
                     }
                     if (conteudo == null) {
-                        Toast.makeText(context, "Arquivo excede o tamanho máximo permitido de 2 MB", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_csv_too_large), Toast.LENGTH_LONG).show()
                     } else if (conteudo.isNotBlank()) {
                         val preview = CsvManager.processarCsvImportacao(conteudo, todasSessoes)
                         previewImportacao = preview
                     } else {
-                        Toast.makeText(context, "Arquivo vazio ou ilegível", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.toast_csv_empty), Toast.LENGTH_SHORT).show()
                     }
                 } catch (_: Exception) {
-                    Toast.makeText(context, "Erro ao ler o arquivo CSV", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_csv_read_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -181,7 +182,104 @@ fun DadosScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // Seção 0: Aparência e Tema
+            // Seção 0: Idioma (Language)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("card_idioma"),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.language_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.language_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("segmented_button_idioma")
+                    ) {
+                        val opcoes = listOf(
+                            AppLanguage.AUTO,
+                            AppLanguage.ENGLISH,
+                            AppLanguage.PORTUGUESE
+                        )
+                        opcoes.forEachIndexed { index, idioma ->
+                            val isSelected = idiomaAtual == idioma
+                            SegmentedButton(
+                                selected = isSelected,
+                                onClick = {
+                                    scope.launch {
+                                        app.localePreferences.salvarIdioma(
+                                            idioma = idioma,
+                                            activity = context as? Activity
+                                        )
+                                    }
+                                },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = opcoes.size),
+                                modifier = Modifier.testTag(
+                                    when (idioma) {
+                                        AppLanguage.AUTO -> "btn_idioma_auto"
+                                        AppLanguage.ENGLISH -> "btn_idioma_en"
+                                        AppLanguage.PORTUGUESE -> "btn_idioma_pt_br"
+                                    }
+                                )
+                            ) {
+                                Text(
+                                    text = when (idioma) {
+                                        AppLanguage.AUTO -> stringResource(R.string.language_auto)
+                                        AppLanguage.ENGLISH -> stringResource(R.string.language_en)
+                                        AppLanguage.PORTUGUESE -> stringResource(R.string.language_pt_br)
+                                    },
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        Text(
+                            text = stringResource(R.string.language_restart_notice),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Seção 1: Aparência e Tema
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -252,7 +350,8 @@ fun DadosScreen(
                     }
                 }
             }
-            // Seção 1: Importar CSV
+
+            // Seção 2: Importar CSV
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -284,12 +383,12 @@ fun DadosScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Importar do Google Sheets (CSV)",
+                                text = stringResource(R.string.import_csv_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Cabeçalho: Data, Six-Counts, Navy Seals",
+                                text = stringResource(R.string.import_csv_header),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -297,7 +396,7 @@ fun DadosScreen(
                     }
 
                     Text(
-                        text = "O arquivo exportado de sua planilha deve conter as colunas de data e repetições. Aceita formatos dd/MM/yyyy, d/M/yyyy, yyyy-MM-dd e separadores vírgula (,) ou ponto e vírgula (;).",
+                        text = stringResource(R.string.import_csv_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -321,7 +420,7 @@ fun DadosScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Importar CSV",
+                            text = stringResource(R.string.btn_import_csv),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -329,7 +428,7 @@ fun DadosScreen(
                 }
             }
 
-            // Seção 2: Exportar CSV
+            // Seção 3: Exportar CSV
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -361,12 +460,12 @@ fun DadosScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Exportar Histórico (CSV)",
+                                text = stringResource(R.string.export_csv_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${todasSessoes.size} sessões disponíveis para exportação",
+                                text = stringResource(R.string.export_csv_count, todasSessoes.size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -374,7 +473,7 @@ fun DadosScreen(
                     }
 
                     Text(
-                        text = "Gera um arquivo CSV formatado com Data (dd/MM/yyyy), Six-Counts e Navy Seals (somando os treinos do mesmo dia por tipo), compatível com Google Sheets e Excel.",
+                        text = stringResource(R.string.export_csv_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -407,7 +506,7 @@ fun DadosScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Exportar CSV",
+                                text = stringResource(R.string.btn_export_csv),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.secondary
@@ -434,12 +533,12 @@ fun DadosScreen(
                             repository.importarSessoes(preview.sessoesParaCriar)
                             Toast.makeText(
                                 context,
-                                "Sucesso: ${preview.sessoesParaCriar.size} sessões gravadas em transação!",
+                                context.getString(R.string.toast_import_success, preview.sessoesParaCriar.size),
                                 Toast.LENGTH_LONG
                             ).show()
                             previewImportacao = null
                         } catch (_: Exception) {
-                            Toast.makeText(context, "Erro ao gravar as sessões no banco de dados.", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, context.getString(R.string.toast_import_db_error), Toast.LENGTH_LONG).show()
                         } finally {
                             isImportando = false
                         }
@@ -470,7 +569,7 @@ private fun DialogPreviaImportacao(
     AlertDialog(
         onDismissRequest = { if (!isImportando) onCancelar() },
         title = {
-            Text(text = "Prévia da Importação", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.import_preview_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(
@@ -489,24 +588,24 @@ private fun DialogPreviaImportacao(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Linhas lidas no arquivo:", style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.import_preview_lines_read), style = MaterialTheme.typography.bodySmall)
                             Text("${preview.totalLinhasLidas}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Sessões a serem criadas:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(R.string.import_preview_sessions_create), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             Text("${preview.totalSessoesCriadas}", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
                         }
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Ignoradas por duplicidade:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.import_preview_duplicates), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("${preview.totalDuplicadas}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
 
-                // Amostra das primeiras 5 linhas
+                // Amostra das primeiras linhas
                 if (preview.primeirasLinhas.isNotEmpty()) {
                     Text(
-                        text = "Primeiras Linhas (${preview.primeirasLinhas.size}):",
+                        text = stringResource(R.string.import_preview_first_lines, preview.primeirasLinhas.size),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -530,7 +629,7 @@ private fun DialogPreviaImportacao(
                                     fontFamily = FontFamily.Monospace
                                 )
                                 Text(
-                                    text = "6-Count: ${linha.sixCounts} · Navy: ${linha.navySeals}",
+                                    text = "${stringResource(R.string.six_count_short)}: ${linha.sixCounts} · ${stringResource(R.string.navy_seal_short)}: ${linha.navySeals}",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -543,7 +642,7 @@ private fun DialogPreviaImportacao(
                 // Linhas com erro
                 if (preview.erros.isNotEmpty()) {
                     Text(
-                        text = "Linhas com Erro (${preview.erros.size}):",
+                        text = stringResource(R.string.import_preview_error_lines, preview.erros.size),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.error
@@ -567,7 +666,7 @@ private fun DialogPreviaImportacao(
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "Linha ${erro.numeroLinha}: ${erro.mensagem}",
+                                    text = stringResource(R.string.import_preview_row_error_format, erro.numeroLinha, erro.mensagem),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.error
                                 )
@@ -578,7 +677,7 @@ private fun DialogPreviaImportacao(
 
                 if (preview.sessoesParaCriar.isEmpty()) {
                     Text(
-                        text = "Nenhuma nova sessão válida para criar.",
+                        text = stringResource(R.string.import_preview_no_valid_sessions),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
@@ -596,9 +695,9 @@ private fun DialogPreviaImportacao(
                 if (isImportando) {
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Gravando...")
+                    Text(stringResource(R.string.saving_progress))
                 } else {
-                    Text("Confirmar (${preview.sessoesParaCriar.size} sessões)")
+                    Text(stringResource(R.string.btn_confirm_count, preview.sessoesParaCriar.size))
                 }
             }
         },
@@ -608,7 +707,7 @@ private fun DialogPreviaImportacao(
                 enabled = !isImportando,
                 modifier = Modifier.testTag("btn_cancelar_importacao")
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )
@@ -638,17 +737,17 @@ private suspend fun exportarECompartilharCsv(
             val sendIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/csv"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Burpee Log - Exportação de Treinos")
+                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.export_subject))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val chooser = Intent.createChooser(sendIntent, "Exportar Treinos do Burpee Log").apply {
+            val chooser = Intent.createChooser(sendIntent, context.getString(R.string.export_chooser_title)).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(chooser)
         } catch (_: Exception) {
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Erro ao gerar o arquivo de exportação.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.toast_export_error), Toast.LENGTH_LONG).show()
             }
         }
     }

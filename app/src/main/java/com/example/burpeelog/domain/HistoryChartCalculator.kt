@@ -1,13 +1,14 @@
 package com.example.burpeelog.domain
 
+import com.example.R
 import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
 import java.time.LocalDate
 
-enum class ChartPeriodFilter(val label: String, val days: Long?) {
-    DAYS_30("30 dias", 30L),
-    DAYS_90("90 dias", 90L),
-    ALL("Tudo", null)
+enum class ChartPeriodFilter(val labelRes: Int, val label: String, val days: Long?) {
+    DAYS_30(R.string.chart_filter_30d, "30 dias", 30L),
+    DAYS_90(R.string.chart_filter_90d, "90 dias", 90L),
+    ALL(R.string.chart_filter_all, "Tudo", null)
 }
 
 data class ChartPoint(

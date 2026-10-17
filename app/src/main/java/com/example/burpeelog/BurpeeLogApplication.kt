@@ -15,6 +15,9 @@ class BurpeeLogApplication : Application() {
     val themePreferences: com.example.burpeelog.data.preferences.ThemePreferences by lazy {
         com.example.burpeelog.data.preferences.ThemePreferences(this)
     }
+    val localePreferences: com.example.burpeelog.data.preferences.LocalePreferencesManager by lazy {
+        com.example.burpeelog.data.preferences.LocalePreferencesManager(this)
+    }
     val workoutSessionManager: com.example.burpeelog.service.WorkoutSessionManager by lazy {
         com.example.burpeelog.service.WorkoutSessionManager(this)
     }

@@ -48,6 +48,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.burpeelog.data.model.Sessao
 import com.example.burpeelog.data.model.TipoExercicio
 import com.example.burpeelog.domain.ChartPeriodFilter
@@ -122,7 +124,7 @@ fun BurpeeHistoryLineChart(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Evolução por Sessão",
+                            text = stringResource(R.string.chart_evolution_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -130,7 +132,7 @@ fun BurpeeHistoryLineChart(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Reps por sessão de 20 min",
+                            text = stringResource(R.string.chart_evolution_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -147,12 +149,12 @@ fun BurpeeHistoryLineChart(
                 ) {
                     LegendaItem(
                         cor = Color(0xFF22C55E), // Verde Six-Count
-                        nome = "Six-Count"
+                        nome = stringResource(R.string.six_count_short)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     LegendaItem(
                         cor = Color(0xFF38BDF8), // Azul/Ciano Navy Seal
-                        nome = "Navy Seal"
+                        nome = stringResource(R.string.navy_seal_short)
                     )
                 }
             }
@@ -172,7 +174,7 @@ fun BurpeeHistoryLineChart(
                         },
                         label = {
                             Text(
-                                text = periodo.label,
+                                text = stringResource(periodo.labelRes),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
@@ -197,7 +199,7 @@ fun BurpeeHistoryLineChart(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Nenhuma sessão registrada no período selecionado.",
+                        text = stringResource(R.string.chart_empty_period),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -395,8 +397,15 @@ private fun DetalhePontoCard(
     onFechar: () -> Unit
 ) {
     val corTipo = if (ponto.tipo == TipoExercicio.SIX_COUNT) Color(0xFF22C55E) else Color(0xFF38BDF8)
-    val sdf = remember { SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.forLanguageTag("pt-BR")) }
-    val dataTexto = remember(ponto.timestamp) { sdf.format(Date(ponto.timestamp)) }
+    val dataTexto = remember(ponto.timestamp) {
+        val dateFormat = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT, Locale.getDefault())
+        dateFormat.format(Date(ponto.timestamp))
+    }
+    val tipoNome = if (ponto.tipo == TipoExercicio.SIX_COUNT) {
+        stringResource(R.string.six_count_short)
+    } else {
+        stringResource(R.string.navy_seal_short)
+    }
 
     Card(
         modifier = Modifier
@@ -424,7 +433,7 @@ private fun DetalhePontoCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "${ponto.tipo.titulo.substringBefore(" ")}: ${ponto.reps} reps",
+                        text = "$tipoNome: ${ponto.reps} reps",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -438,7 +447,7 @@ private fun DetalhePontoCard(
             }
 
             Text(
-                text = "Fechar",
+                text = stringResource(R.string.btn_close),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,

@@ -18,6 +18,7 @@
     <string name="btn_pause">Pause</string>
     <string name="btn_resume">Resume</string>
     <string name="btn_finish">Finish</string>
+    <string name="ok">OK</string>
 
     <!-- Exercise Types -->
     <string name="exercise_six_count">Six-Count Burpee</string>
@@ -35,6 +36,15 @@
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="theme_system">Automatic</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">Language</string>
+    <string name="language_subtitle">App display language</string>
+    <string name="language_auto">Automatic</string>
+    <string name="language_auto_desc">Follows device language</string>
+    <string name="language_en">English</string>
+    <string name="language_pt_br">Português (BR)</string>
+    <string name="language_restart_notice">The language will be applied upon restarting the app.</string>
 
     <!-- Home / Dashboard -->
     <string name="dashboard_motto">Track your workouts, pace your sets, and beat your personal records.</string>
@@ -61,6 +71,19 @@
     <string name="no_workouts_logged">No workouts logged yet.</string>
     <string name="no_workouts_on_date">No workout on %1$s</string>
     <string name="workout_on_date">%1$s</string>
+    <string name="total_in_year">TOTAL IN %1$d</string>
+    <string name="records_single_session_title">Single-Session Records</string>
+    <string name="records_single_session_subtitle">Max reps in 20 min</string>
+    <string name="current_week_label">Current Week (Mon to Sun)</string>
+    <string name="streak_label">STREAK</string>
+    <string name="streak_subtitle">Consecutive 80-min goals</string>
+    <string name="heatmap_section_title">REPETITION HEATMAP (12 MONTHS)</string>
+    <string name="no_records_yet">No records logged yet</string>
+    <string name="records_average_range" formatted="false">Records average: 1%–25% · 26%–50% · 51%–75% · 76%+</string>
+    <string name="rep_ranges_label">Rep ranges: %1$s</string>
+    <string name="no_workouts_on_this_day">No workouts logged on this day.</string>
+    <string name="pct_of_record">%1$d%% of record (%2$d)</string>
+    <string name="no_record">No record</string>
 
     <!-- Workout Setup -->
     <string name="workout_config_title">Configure Workout</string>
@@ -80,6 +103,11 @@
     <string name="projected_reps_unit">%1$d reps</string>
     <string name="total_duration_label">Total: %1$d minutes</string>
     <string name="btn_start_session">Start 20-Min Session</string>
+    <string name="minute_interval_dialog_title">Interval for Minute %1$d</string>
+    <string name="minute_interval_dialog_desc">Set the time in seconds (between 2 and 60 s):</string>
+    <string name="error_seconds_range">Enter a number between 2 and 60</string>
+    <string name="quick_values_label">Quick values:</string>
+    <string name="btn_apply">Apply</string>
 
     <!-- Warmup -->
     <string name="warmup_title">Warmup (7 min)</string>
@@ -107,25 +135,95 @@
     <string name="dialog_finish_early_desc">Your elapsed duration (%1$s) and the repetitions completed so far will be saved in your summary.</string>
     <string name="btn_finish_now">Finish Now</string>
     <string name="btn_continue">Continue</string>
+    <string name="time_done_format">Time elapsed: %1$dm %2$ds (%3$s remaining).</string>
+    <string name="reps_done_format">Repetitions completed: %1$d of %2$d reps.</string>
+    <string name="finish_options_prompt">Choose how you want to proceed with the session:</string>
+    <string name="btn_save_partial">Save partial</string>
+    <string name="btn_discard_workout">Discard workout</string>
+    <string name="btn_continue_training">Continue training</string>
+    <string name="block_time_remaining">BLOCK TIME REMAINING</string>
+    <string name="warmup_reps_not_counted">WARMUP (REPS DO NOT COUNT)</string>
+    <string name="rep_counter_format">Rep %1$d</string>
+    <string name="next_in_seconds_format">Next in %1$ds</string>
+    <string name="waiting">Waiting...</string>
+    <string name="next_rep_badge">NEXT REP</string>
+    <string name="rest_and_recovery">REST AND RECOVERY</string>
+    <string name="rest_instructions">Breathe deeply, relax muscles, and get ready.</string>
+    <string name="prepare_for_20_minutes">PREPARE FOR THE 20 MINUTES</string>
+    <string name="warmup_in_progress">WARMUP IN PROGRESS</string>
+    <string name="main_workout_after_rest">Main workout starts right after rest</string>
+    <string name="minute_x_of_total">Minute %1$d of %2$d</string>
+    <string name="percent_completed">%1$d%% completed</string>
+    <string name="time_remaining">TIME REMAINING</string>
+    <string name="rep_counting">REPETITION COUNTING</string>
+    <string name="rep_x_of_y">Rep %1$d of %2$d</string>
+    <string name="next_rep_in_format">Next rep in %1$ds</string>
+    <string name="last_repetition">Last repetition!</string>
 
     <!-- Workout Summary -->
     <string name="workout_summary_title">Workout Summary</string>
+    <string name="workout_summary_header">Workout Summary</string>
     <string name="workout_summary_congrats">Great work! Session finished.</string>
+    <string name="workout_complete_congrats">Full Workout Completed!</string>
+    <string name="workout_partial_finished">Partial Workout Finished</string>
     <string name="completed_reps_label">Completed Reps</string>
     <string name="training_duration_label">Training Duration</string>
     <string name="notes_optional_label">Notes (optional)</string>
     <string name="notes_placeholder">e.g., Good pacing, felt strong in the final 5 minutes...</string>
     <string name="btn_save_workout">Save Workout</string>
+    <string name="btn_discard">Discard</string>
     <string name="toast_workout_saved">Workout successfully saved!</string>
+    <string name="target_reps_label">Projected Repetitions:</string>
+    <string name="reps_completed_title">REPETITIONS COMPLETED</string>
+    <string name="summary_partial_info">Automatically filled with repetitions calculated until interruption (%1$d reps). Adjust if needed.</string>
+    <string name="summary_completed_info">Initially filled with projected repetitions (%1$d reps). Adjust if needed.</string>
+    <string name="session_details_title">Session Details</string>
+    <string name="exercise_label">Exercise:</string>
+    <string name="cadence_pattern_label">Pacing interval pattern:</string>
+    <string name="seconds_per_minute_format">%1$ss per minute</string>
+    <string name="busy_dad_duration_label">Official Busy Dad duration:</string>
+    <string name="minutes_count_format">%1$d minutes</string>
+    <string name="notes_summary_placeholder">e.g. Good pacing, fasted workout, 10 extra reps</string>
+    <string name="discard_workout_title">Discard Workout?</string>
+    <string name="discard_workout_desc">Data from this session will not be saved in your history.</string>
+    <string name="btn_confirm_discard">Yes, Discard</string>
 
     <!-- History -->
     <string name="history_title">Workout History</string>
     <string name="history_subtitle">All your logged sessions</string>
+    <string name="chip_all_with_count">All (%1$d)</string>
+    <string name="chip_six_count_with_count">Six-Count (%1$d)</string>
+    <string name="chip_navy_seal_with_count">Navy Seal (%1$d)</string>
+    <string name="badge_imported">IMPORTED</string>
+    <string name="target_reps_format">Target: %1$d reps</string>
+    <string name="edit_session_title">Edit Session</string>
+    <string name="dialog_delete_confirm_msg">Are you sure you want to delete the %1$s session (%2$d reps) on %3$s? This action cannot be undone.</string>
+    <string name="field_exercise_type">Exercise Type:</string>
+    <string name="field_duration_label">Duration:</string>
+    <string name="field_reps_completed">Repetitions Completed</string>
+    <string name="field_reps_completed_required">Repetitions Completed *</string>
+    <string name="placeholder_reps_example">e.g. 45</string>
+    <string name="field_notes_optional">Notes (optional)</string>
+    <string name="placeholder_notes_example">e.g. Workout logged after the park</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="workout_date_label">Workout Date:</string>
+    <string name="btn_choose_another_date">Choose another date</string>
+    <string name="btn_add_session">Add Session</string>
+    <string name="empty_filter_title">No Sessions with This Filter</string>
+    <string name="empty_history_title">No Workouts Logged</string>
+    <string name="empty_filter_desc">Try selecting another filter or log a past workout.</string>
+    <string name="empty_history_desc">Complete a 20-minute session in the Workout tab or log a past workout manually.</string>
+    <string name="btn_add_past_session">Add Past Workout</string>
     <string name="chart_progression_title">Progression</string>
+    <string name="chart_evolution_title">Progression by Session</string>
+    <string name="chart_evolution_subtitle">Reps per 20-min session</string>
     <string name="chart_period_all">All</string>
     <string name="chart_period_3m">3 Months</string>
     <string name="chart_period_6m">6 Months</string>
     <string name="chart_period_1y">1 Year</string>
+    <string name="chart_filter_30d">30 days</string>
+    <string name="chart_filter_90d">90 days</string>
+    <string name="chart_filter_all">All</string>
     <string name="chart_empty_period">No sessions logged in the selected period.</string>
     <string name="btn_log_past_workout">Log Past Workout</string>
     <string name="dialog_add_past_title">Add Past Workout</string>
@@ -153,6 +251,7 @@
     <string name="settings_and_data_title">Settings &amp; Data</string>
     <string name="import_csv_title">Import from Google Sheets (CSV)</string>
     <string name="import_csv_header_info">Header: Date, Six-Counts, Navy Seals</string>
+    <string name="import_csv_header">Header: Date, Six-Counts, Navy Seals</string>
     <string name="import_csv_desc">Exported CSV files must contain date and repetition columns. Accepts dd/MM/yyyy, d/M/yyyy, yyyy-MM-dd formats and comma (,) or semicolon (;) delimiters.</string>
     <string name="btn_import_csv">Import CSV</string>
     <string name="export_csv_title">Export History (CSV)</string>
@@ -161,6 +260,15 @@
     <string name="btn_export_csv">Export CSV</string>
     <string name="import_preview_title">Import Preview</string>
     <string name="import_preview_ready">CSV read successfully and validated</string>
+    <string name="import_preview_lines_read">File rows read:</string>
+    <string name="import_preview_sessions_create">Sessions to create:</string>
+    <string name="import_preview_duplicates">Ignored duplicates:</string>
+    <string name="import_preview_first_lines">First Rows (%1$d):</string>
+    <string name="import_preview_error_lines">Rows with Errors (%1$d):</string>
+    <string name="import_preview_row_error_format">Row %1$d: %2$s</string>
+    <string name="import_preview_no_valid_sessions">No new valid sessions to create.</string>
+    <string name="btn_confirm_count">Confirm (%1$d sessions)</string>
+    <string name="saving_progress">Saving...</string>
     <string name="lines_read_count">Rows read: %1$d</string>
     <string name="sessions_to_create_count">Sessions to create: %1$d</string>
     <string name="duplicates_skipped_count">Duplicates skipped: %1$d</string>
@@ -169,6 +277,10 @@
     <string name="btn_confirm_import">Confirm Import</string>
     <string name="toast_import_success">Success: %1$d sessions saved to database!</string>
     <string name="toast_import_error">Error saving sessions to database.</string>
+    <string name="toast_import_db_error">Error saving sessions to database.</string>
+    <string name="toast_export_error">Error generating export file.</string>
+    <string name="export_subject">Burpee Log - Workout Export</string>
+    <string name="export_chooser_title">Export Burpee Log Workouts</string>
     <string name="toast_csv_too_large">File exceeds maximum allowed size of 2 MB</string>
     <string name="toast_csv_empty">File is empty or unreadable</string>
     <string name="toast_csv_read_error">Error reading CSV file</string>
@@ -180,4 +292,18 @@
     <string name="notif_active_text">%1$s • %2$d reps • Next in %3$ds</string>
     <string name="notif_paused_title">Busy Dad Workout • Paused</string>
     <string name="notif_paused_text">Workout is paused at %1$s</string>
+
+    <!-- Plurals -->
+    <plurals name="sessions_completed_count">
+        <item quantity="one">%1$d session completed</item>
+        <item quantity="other">%1$d sessions completed</item>
+    </plurals>
+    <plurals name="weeks_streak_count">
+        <item quantity="one">%1$d week</item>
+        <item quantity="other">%1$d weeks</item>
+    </plurals>
+    <plurals name="sessions_registered_count">
+        <item quantity="one">%1$d session logged</item>
+        <item quantity="other">%1$d sessions logged</item>
+    </plurals>
 </resources>

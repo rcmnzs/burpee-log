@@ -1,0 +1,309 @@
+<resources>
+    <!-- App & Navigation -->
+    <string name="app_name">Burpee Log</string>
+    <string name="app_subtitle">Busy Dad Program • Dashboard</string>
+    <string name="tab_inicio">Início</string>
+    <string name="tab_treino">Treino</string>
+    <string name="tab_historico">Histórico</string>
+
+    <!-- Common Actions & Buttons -->
+    <string name="btn_back">Voltar</string>
+    <string name="btn_close">Fechar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_confirm">Confirmar</string>
+    <string name="btn_save">Salvar</string>
+    <string name="btn_delete">Excluir</string>
+    <string name="btn_edit">Editar</string>
+    <string name="btn_start">Iniciar</string>
+    <string name="btn_pause">Pausar</string>
+    <string name="btn_resume">Continuar</string>
+    <string name="btn_finish">Encerrar</string>
+    <string name="ok">OK</string>
+
+    <!-- Exercise Types -->
+    <string name="exercise_six_count">Six-Count Burpee</string>
+    <string name="exercise_six_count_desc">Burpee tradicional em 6 tempos com flexão única.</string>
+    <string name="exercise_navy_seal">Navy Seal Burpee</string>
+    <string name="exercise_navy_seal_desc">Burpee militar com 3 flexões e 2 joelhadas intercaladas.</string>
+    <string name="six_count_short">Six-Count</string>
+    <string name="navy_seal_short">Navy Seal</string>
+    <string name="both_exercises">Ambos</string>
+    <string name="all_exercises">Todos</string>
+
+    <!-- Theme / Appearance -->
+    <string name="appearance_title">Aparência</string>
+    <string name="appearance_subtitle">Tema visual do aplicativo</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_system">Automático</string>
+
+    <!-- Language Settings -->
+    <string name="language_title">Idioma</string>
+    <string name="language_subtitle">Idioma de exibição do aplicativo</string>
+    <string name="language_auto">Automático</string>
+    <string name="language_auto_desc">Segue o idioma do dispositivo</string>
+    <string name="language_en">English</string>
+    <string name="language_pt_br">Português (BR)</string>
+    <string name="language_restart_notice">O idioma será aplicado ao reiniciar o app.</string>
+
+    <!-- Home / Dashboard -->
+    <string name="dashboard_motto">Acompanhe seus treinos, controle o ritmo e supere seus recordes.</string>
+    <string name="weekly_goal_title">Meta Semanal</string>
+    <string name="weekly_goal_completed">Meta batida! 80+ minutos completados.</string>
+    <string name="weekly_goal_in_progress">Meta em andamento</string>
+    <string name="weekly_minutes_format">%1$d de 80 min</string>
+    <string name="stat_weekly_minutes">Minutos da Semana</string>
+    <string name="stat_weekly_streak">Semanas Seguidas</string>
+    <string name="stat_total_reps">Total de Repetições</string>
+    <string name="stat_total_workouts">Total de Treinos</string>
+    <string name="personal_records_title">Recordes Pessoais</string>
+    <string name="record_six_count_label">Recorde Six-Count</string>
+    <string name="record_navy_seal_label">Recorde Navy Seal</string>
+    <string name="heatmap_title">Mapa de Calor de Atividades</string>
+    <string name="heatmap_subtitle">Últimos 12 meses de treino</string>
+    <string name="heatmap_less">Menos</string>
+    <string name="heatmap_more">Mais</string>
+    <string name="day_mon">Seg</string>
+    <string name="day_wed">Qua</string>
+    <string name="day_fri">Sex</string>
+    <string name="day_sun">Dom</string>
+    <string name="btn_start_workout_now">Iniciar Treino Agora</string>
+    <string name="no_workouts_logged">Nenhum treino registrado ainda.</string>
+    <string name="no_workouts_on_date">Sem treino em %1$s</string>
+    <string name="workout_on_date">%1$s</string>
+    <string name="total_in_year">TOTAL EM %1$d</string>
+    <string name="records_single_session_title">Recordes em 1 Sessão</string>
+    <string name="records_single_session_subtitle">Máximo de reps em 20 min</string>
+    <string name="current_week_label">Semana Atual (Seg a Dom)</string>
+    <string name="streak_label">SEQUÊNCIA</string>
+    <string name="streak_subtitle">Metas de 80 min seguidas</string>
+    <string name="heatmap_section_title">MAPA DE REPETIÇÕES (12 MESES)</string>
+    <string name="no_records_yet">Nenhum recorde registrado ainda</string>
+    <string name="records_average_range" formatted="false">Média dos recordes: 1%–25% · 26%–50% · 51%–75% · 76%+</string>
+    <string name="rep_ranges_label">Faixas de reps: %1$s</string>
+    <string name="no_workouts_on_this_day">Nenhum treino realizado neste dia.</string>
+    <string name="pct_of_record">%1$d%% do recorde (%2$d)</string>
+    <string name="no_record">Sem recorde</string>
+
+    <!-- Workout Setup -->
+    <string name="workout_config_title">Configurar Sessão</string>
+    <string name="workout_config_subtitle">Busy Dad Program • %1$d minutos</string>
+    <string name="select_exercise_title">Selecionar Exercício</string>
+    <string name="cadence_title">Padrão de Intervalos</string>
+    <string name="cadence_subtitle">Intervalo entre repetições em segundos (ex.: 30, 20)</string>
+    <string name="presets_label">Predefinições</string>
+    <string name="preset_standard">Padrão</string>
+    <string name="preset_desc_standard">Mesmo ritmo todos os minutos</string>
+    <string name="preset_desc_pyramid">Intervalos progressivos</string>
+    <string name="preset_desc_alternating">Intervalos alternados</string>
+    <string name="add_minute">Adicionar Minuto</string>
+    <string name="minute_pattern_label">Minuto %1$d</string>
+    <string name="every_x_seconds">A cada %1$ds</string>
+    <string name="projected_reps_label">Repetições Previstas</string>
+    <string name="projected_reps_unit">%1$d reps</string>
+    <string name="total_duration_label">Total: %1$d minutos</string>
+    <string name="btn_start_session">Iniciar Treino de 20 Minutos</string>
+    <string name="minute_interval_dialog_title">Intervalo do Minuto %1$d</string>
+    <string name="minute_interval_dialog_desc">Defina o tempo em segundos (entre 2 e 60 s):</string>
+    <string name="error_seconds_range">Digite um número entre 2 e 60</string>
+    <string name="quick_values_label">Valores rápidos:</string>
+    <string name="btn_apply">Aplicar</string>
+
+    <!-- Warmup -->
+    <string name="warmup_title">Aquecimento (7 min)</string>
+    <string name="warmup_flow_summary">Aquecimento: 1 min burpee → 2 min descanso → 1 min burpee → 3 min descanso → treino (20 min)</string>
+    <string name="btn_start_warmup_active">Iniciar (27 min)</string>
+    <string name="btn_start_standard">Iniciar (20 min)</string>
+    <string name="warmup_burpees_badge">Aquecimento — Burpees</string>
+    <string name="warmup_rest_badge">Aquecimento — Descanso</string>
+    <string name="workout_starts_in">Treino começa em %1$s</string>
+    <string name="dialog_warmup_finish_title">Aquecimento em andamento</string>
+    <string name="dialog_warmup_finish_desc">Deseja pular o aquecimento e ir direto para o treino de 20 minutos, ou cancelar tudo?</string>
+    <string name="btn_skip_warmup">Pular aquecimento e ir para o treino</string>
+    <string name="btn_cancel_all">Cancelar tudo</string>
+    <string name="btn_continue_warmup">Continuar aquecimento</string>
+
+    <!-- Active Workout -->
+    <string name="session_in_progress">Sessão em Andamento</string>
+    <string name="get_ready">Prepare-se!</string>
+    <string name="first_rep_info">A primeira repetição começa no segundo 0!</string>
+    <string name="next_rep_in">Próxima repetição em</string>
+    <string name="current_rep_label">Repetição</string>
+    <string name="workout_paused_badge">Pausado</string>
+    <string name="btn_finish_early">Encerrar Treino</string>
+    <string name="dialog_finish_early_title">Encerrar treino antecipadamente?</string>
+    <string name="dialog_finish_early_desc">O tempo decorrido (%1$s) e as repetições realizadas até agora serão salvos no resumo.</string>
+    <string name="btn_finish_now">Encerrar Agora</string>
+    <string name="btn_continue">Continuar</string>
+    <string name="time_done_format">Tempo realizado: %1$dm %2$ds (%3$s restantes).</string>
+    <string name="reps_done_format">Repetições feitas: %1$d de %2$d reps.</string>
+    <string name="finish_options_prompt">Escolha como deseja prosseguir com a sessão:</string>
+    <string name="btn_save_partial">Salvar parcial</string>
+    <string name="btn_discard_workout">Descartar treino</string>
+    <string name="btn_continue_training">Continuar treinando</string>
+    <string name="block_time_remaining">TEMPO RESTANTE DO BLOCO</string>
+    <string name="warmup_reps_not_counted">AQUECIMENTO (REPS NÃO SOMAM)</string>
+    <string name="rep_counter_format">Rep %1$d</string>
+    <string name="next_in_seconds_format">Próxima em %1$ds</string>
+    <string name="waiting">Aguardando...</string>
+    <string name="next_rep_badge">PRÓXIMA REP</string>
+    <string name="rest_and_recovery">DESCANSO E RECUPERAÇÃO</string>
+    <string name="rest_instructions">Respire fundo, relaxe os músculos e prepare-se.</string>
+    <string name="prepare_for_20_minutes">PREPARE-SE PARA OS 20 MINUTOS</string>
+    <string name="warmup_in_progress">AQUECIMENTO EM PROGRESSO</string>
+    <string name="main_workout_after_rest">Treino principal logo após os descansos</string>
+    <string name="minute_x_of_total">Minuto %1$d de %2$d</string>
+    <string name="percent_completed">%1$d%% concluído</string>
+    <string name="time_remaining">TEMPO RESTANTE</string>
+    <string name="rep_counting">CONTAGEM DE REPETIÇÕES</string>
+    <string name="rep_x_of_y">Rep %1$d de %2$d</string>
+    <string name="next_rep_in_format">Próxima rep em %1$ds</string>
+    <string name="last_repetition">Última repetição!</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">Resumo do Treino</string>
+    <string name="workout_summary_header">Resumo do Treino</string>
+    <string name="workout_summary_congrats">Parabéns pelo treino concluído!</string>
+    <string name="workout_complete_congrats">Treino Completo Concluído!</string>
+    <string name="workout_partial_finished">Treino Parcial Finalizado</string>
+    <string name="completed_reps_label">Repetições Realizadas</string>
+    <string name="training_duration_label">Duração Treinada</string>
+    <string name="notes_optional_label">Observações (opcional)</string>
+    <string name="notes_placeholder">Ex.: Ritmo constante, cansaço nos últimos 5 minutos...</string>
+    <string name="btn_save_workout">Salvar Treino</string>
+    <string name="btn_discard">Descartar</string>
+    <string name="toast_workout_saved">Treino salvo com sucesso!</string>
+    <string name="target_reps_label">Repetições Previstas:</string>
+    <string name="reps_completed_title">REPETIÇÕES FEITAS</string>
+    <string name="summary_partial_info">Preenchido automaticamente com as repetições calculadas até a interrupção (%1$d reps). Altere se necessário.</string>
+    <string name="summary_completed_info">Padrão inicial preenchido com as repetições previstas (%1$d reps). Altere se necessário.</string>
+    <string name="session_details_title">Detalhes da Sessão</string>
+    <string name="exercise_label">Exercício:</string>
+    <string name="cadence_pattern_label">Padrão de intervalos:</string>
+    <string name="seconds_per_minute_format">%1$ss por minuto</string>
+    <string name="busy_dad_duration_label">Duração oficial Busy Dad:</string>
+    <string name="minutes_count_format">%1$d minutos</string>
+    <string name="notes_summary_placeholder">Ex.: Bom ritmo, treino em jejum, 10 reps a mais</string>
+    <string name="discard_workout_title">Descartar Treino?</string>
+    <string name="discard_workout_desc">Os dados desta sessão não serão salvos no histórico.</string>
+    <string name="btn_confirm_discard">Sim, Descartar</string>
+
+    <!-- History -->
+    <string name="history_title">Histórico de Treinos</string>
+    <string name="history_subtitle">Todas as suas sessões salvas</string>
+    <string name="chip_all_with_count">Todos (%1$d)</string>
+    <string name="chip_six_count_with_count">Six-Count (%1$d)</string>
+    <string name="chip_navy_seal_with_count">Navy Seal (%1$d)</string>
+    <string name="badge_imported">IMPORTADA</string>
+    <string name="target_reps_format">Meta: %1$d reps</string>
+    <string name="edit_session_title">Editar Sessão</string>
+    <string name="dialog_delete_confirm_msg">Tem certeza de que deseja excluir a sessão de %1$s (%2$d reps) realizada em %3$s? Esta ação não pode ser desfeita.</string>
+    <string name="field_exercise_type">Tipo de Exercício:</string>
+    <string name="field_duration_label">Duração:</string>
+    <string name="field_reps_completed">Repetições Feitas</string>
+    <string name="field_reps_completed_required">Repetições Feitas *</string>
+    <string name="placeholder_reps_example">Ex.: 45</string>
+    <string name="field_notes_optional">Observação (opcional)</string>
+    <string name="placeholder_notes_example">Ex.: Treino registrado após o parque</string>
+    <string name="btn_save_changes">Salvar Alterações</string>
+    <string name="workout_date_label">Data do Treino:</string>
+    <string name="btn_choose_another_date">Escolher outra data</string>
+    <string name="btn_add_session">Adicionar Sessão</string>
+    <string name="empty_filter_title">Nenhuma Sessão com Este Filtro</string>
+    <string name="empty_history_title">Nenhum Treino Registrado</string>
+    <string name="empty_filter_desc">Tente selecionar outro filtro ou adicione uma sessão passada.</string>
+    <string name="empty_history_desc">Conclua uma sessão de 20 minutos na aba Treino ou adicione uma sessão passada manualmente.</string>
+    <string name="btn_add_past_session">Adicionar Sessão Passada</string>
+    <string name="chart_progression_title">Evolução</string>
+    <string name="chart_evolution_title">Evolução por Sessão</string>
+    <string name="chart_evolution_subtitle">Reps por sessão de 20 min</string>
+    <string name="chart_period_all">Tudo</string>
+    <string name="chart_period_3m">3 Meses</string>
+    <string name="chart_period_6m">6 Meses</string>
+    <string name="chart_period_1y">1 Ano</string>
+    <string name="chart_filter_30d">30 dias</string>
+    <string name="chart_filter_90d">90 dias</string>
+    <string name="chart_filter_all">Tudo</string>
+    <string name="chart_empty_period">Nenhuma sessão registrada no período selecionado.</string>
+    <string name="btn_log_past_workout">Adicionar Sessão Passada</string>
+    <string name="dialog_add_past_title">Adicionar Treino Passado</string>
+    <string name="field_date">Data</string>
+    <string name="field_time">Horário (opcional)</string>
+    <string name="field_exercise">Exercício</string>
+    <string name="field_repetitions">Repetições</string>
+    <string name="field_duration">Duração (mm:ss)</string>
+    <string name="field_notes">Observações (opcional)</string>
+    <string name="chip_today">Hoje</string>
+    <string name="chip_yesterday">Ontem</string>
+    <string name="chip_two_days_ago">Anteontem</string>
+    <string name="choose_another_date">Escolher outra data</string>
+    <string name="dialog_edit_duration_title">Editar Duração da Sessão</string>
+    <string name="dialog_edit_duration_desc">Informe a duração em minutos e segundos (máximo de 60:00).</string>
+    <string name="minutes_short">Minutos</string>
+    <string name="seconds_short">Segundos</string>
+    <string name="dialog_delete_title">Excluir sessão?</string>
+    <string name="dialog_delete_desc">Deseja realmente excluir este treino? Esta ação não pode ser desfeita.</string>
+    <string name="empty_history">Nenhum treino registrado ainda. Inicie um treino ou adicione uma sessão passada!</string>
+    <string name="toast_session_saved">Treino salvo com sucesso!</string>
+    <string name="toast_session_deleted">Sessão excluída com sucesso.</string>
+
+    <!-- Settings & Data -->
+    <string name="settings_and_data_title">Configurações e Dados</string>
+    <string name="import_csv_title">Importar do Google Sheets (CSV)</string>
+    <string name="import_csv_header_info">Cabeçalho: Data, Six-Counts, Navy Seals</string>
+    <string name="import_csv_header">Cabeçalho: Data, Six-Counts, Navy Seals</string>
+    <string name="import_csv_desc">O arquivo exportado de sua planilha deve conter as colunas de data e repetições. Aceita formatos dd/MM/yyyy, d/M/yyyy, yyyy-MM-dd e separadores vírgula (,) ou ponto e vírgula (;).</string>
+    <string name="btn_import_csv">Importar CSV</string>
+    <string name="export_csv_title">Exportar Histórico (CSV)</string>
+    <string name="export_csv_count">%1$d sessões disponíveis para exportação</string>
+    <string name="export_csv_desc">Gera um arquivo CSV formatado com Data (dd/MM/yyyy), Six-Counts e Navy Seals (somando os treinos do mesmo dia por tipo), compatível com Google Sheets e Excel.</string>
+    <string name="btn_export_csv">Exportar CSV</string>
+    <string name="import_preview_title">Prévia da Importação</string>
+    <string name="import_preview_ready">Arquivo CSV lido e validado com sucesso</string>
+    <string name="import_preview_lines_read">Linhas lidas no arquivo:</string>
+    <string name="import_preview_sessions_create">Sessões a serem criadas:</string>
+    <string name="import_preview_duplicates">Ignoradas por duplicidade:</string>
+    <string name="import_preview_first_lines">Primeiras Linhas (%1$d):</string>
+    <string name="import_preview_error_lines">Linhas com Erro (%1$d):</string>
+    <string name="import_preview_row_error_format">Linha %1$d: %2$s</string>
+    <string name="import_preview_no_valid_sessions">Nenhuma nova sessão válida para criar.</string>
+    <string name="btn_confirm_count">Confirmar (%1$d sessões)</string>
+    <string name="saving_progress">Gravando...</string>
+    <string name="lines_read_count">Linhas lidas: %1$d</string>
+    <string name="sessions_to_create_count">Sessões a serem criadas: %1$d</string>
+    <string name="duplicates_skipped_count">Duplicidades ignoradas: %1$d</string>
+    <string name="first_rows_preview">Prévia das primeiras linhas:</string>
+    <string name="dialog_import_confirm_desc">Ao confirmar, as sessões válidas serão gravadas no banco de dados local com garantia transacional.</string>
+    <string name="btn_confirm_import">Confirmar Importação</string>
+    <string name="toast_import_success">Sucesso: %1$d sessões gravadas em transação!</string>
+    <string name="toast_import_error">Erro ao gravar as sessões no banco de dados.</string>
+    <string name="toast_import_db_error">Erro ao gravar as sessões no banco de dados.</string>
+    <string name="toast_export_error">Erro ao gerar o arquivo de exportação.</string>
+    <string name="export_subject">Burpee Log - Exportação de Treinos</string>
+    <string name="export_chooser_title">Exportar Treinos do Burpee Log</string>
+    <string name="toast_csv_too_large">Arquivo excede o tamanho máximo permitido de 2 MB</string>
+    <string name="toast_csv_empty">Arquivo vazio ou ilegível</string>
+    <string name="toast_csv_read_error">Erro ao ler o arquivo CSV</string>
+
+    <!-- Notifications & Service -->
+    <string name="notif_channel_name">Cronômetro de Treino</string>
+    <string name="notif_channel_desc">Exibe o tempo e alertas durante o treino ativo</string>
+    <string name="notif_active_title">Treino Busy Dad • Em Andamento</string>
+    <string name="notif_active_text">%1$s • %2$d reps • Próxima em %3$ds</string>
+    <string name="notif_paused_title">Treino Busy Dad • Pausado</string>
+    <string name="notif_paused_text">Treino pausado em %1$s</string>
+
+    <!-- Plurals -->
+    <plurals name="sessions_completed_count">
+        <item quantity="one">%1$d sessão realizada</item>
+        <item quantity="other">%1$d sessões realizadas</item>
+    </plurals>
+    <plurals name="weeks_streak_count">
+        <item quantity="one">%1$d semana</item>
+        <item quantity="other">%1$d semanas</item>
+    </plurals>
+    <plurals name="sessions_registered_count">
+        <item quantity="one">%1$d sessão registrada</item>
+        <item quantity="other">%1$d sessões registradas</item>
+    </plurals>
+</resources>
