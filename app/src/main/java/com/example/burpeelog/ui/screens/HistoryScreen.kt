@@ -52,6 +52,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -132,7 +135,7 @@ fun HistoryScreen(
             ExtendedFloatingActionButton(
                 onClick = { showDialogAdicionarPassada = true },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Treino Passado") },
+                text = { Text(stringResource(R.string.btn_log_past_workout)) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("fab_adicionar_sessao")
@@ -555,11 +558,16 @@ private fun DialogConfirmarExclusao(
             )
         },
         title = {
-            Text(text = "Excluir Sessão?", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.dialog_delete_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Text(
-                text = "Tem certeza de que deseja excluir a sessão de ${sessao.tipo.titulo} (${sessao.repsFeitas} reps) realizada em $dataTexto? Esta ação não pode ser desfeita."
+                text = stringResource(
+                    R.string.dialog_delete_confirm_msg,
+                    stringResource(sessao.tipo.titleRes),
+                    sessao.repsFeitas,
+                    dataTexto
+                )
             )
         },
         confirmButton = {
@@ -568,7 +576,7 @@ private fun DialogConfirmarExclusao(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.testTag("btn_confirmar_exclusao")
             ) {
-                Text("Excluir")
+                Text(stringResource(R.string.btn_delete))
             }
         },
         dismissButton = {
@@ -576,7 +584,7 @@ private fun DialogConfirmarExclusao(
                 onClick = onDismiss,
                 modifier = Modifier.testTag("btn_cancelar_exclusao")
             ) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )
@@ -608,12 +616,12 @@ private fun DialogEditarSessao(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Editar Sessão", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.edit_session_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 // Seletor de tipo estilo chip
-                Text(text = "Tipo de Exercício:", style = MaterialTheme.typography.labelMedium)
+                Text(text = stringResource(R.string.field_exercise_type), style = MaterialTheme.typography.labelMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -621,7 +629,7 @@ private fun DialogEditarSessao(
                     FilterChip(
                         selected = tipo == TipoExercicio.SIX_COUNT,
                         onClick = { tipo = TipoExercicio.SIX_COUNT },
-                        label = { Text("Six-Count", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text(stringResource(TipoExercicio.SIX_COUNT.titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         border = BorderStroke(
                             1.dp,
                             if (tipo == TipoExercicio.SIX_COUNT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -636,7 +644,7 @@ private fun DialogEditarSessao(
                     FilterChip(
                         selected = tipo == TipoExercicio.NAVY_SEAL,
                         onClick = { tipo = TipoExercicio.NAVY_SEAL },
-                        label = { Text("Navy Seal", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text(stringResource(TipoExercicio.NAVY_SEAL.titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         border = BorderStroke(
                             1.dp,
                             if (tipo == TipoExercicio.NAVY_SEAL) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -651,7 +659,7 @@ private fun DialogEditarSessao(
 
                 // Campo Duração (Minutos e Segundos)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = "Duração:", style = MaterialTheme.typography.labelMedium)
+                    Text(text = stringResource(R.string.field_duration_label), style = MaterialTheme.typography.labelMedium)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -662,7 +670,7 @@ private fun DialogEditarSessao(
                             onValueChange = { novo ->
                                 minutosTexto = novo.filter { it.isDigit() }.take(3)
                             },
-                            label = { Text("Minutos") },
+                            label = { Text(stringResource(R.string.minutes_short)) },
                             placeholder = { Text("20") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
@@ -682,7 +690,7 @@ private fun DialogEditarSessao(
                             onValueChange = { novo ->
                                 segundosTexto = novo.filter { it.isDigit() }.take(2)
                             },
-                            label = { Text("Segundos") },
+                            label = { Text(stringResource(R.string.seconds_short)) },
                             placeholder = { Text("00") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
@@ -706,7 +714,7 @@ private fun DialogEditarSessao(
                 OutlinedTextField(
                     value = repsTexto,
                     onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() }.take(4) },
-                    label = { Text("Repetições Feitas") },
+                    label = { Text(stringResource(R.string.field_reps_completed)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     isError = !repsValidas,
@@ -719,7 +727,7 @@ private fun DialogEditarSessao(
                 OutlinedTextField(
                     value = observacao,
                     onValueChange = { observacao = it.take(500) },
-                    label = { Text("Observação (opcional)") },
+                    label = { Text(stringResource(R.string.field_notes_optional)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_editar_observacao")
@@ -742,21 +750,21 @@ private fun DialogEditarSessao(
                 enabled = repsValidas && duracaoValida,
                 modifier = Modifier.testTag("btn_salvar_edicao")
             ) {
-                Text("Salvar Alterações")
+                Text(stringResource(R.string.btn_save_changes))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )
 }
 
-enum class OpcaoDataRelativa(val rotulo: String) {
-    HOJE("Hoje"),
-    ONTEM("Ontem"),
-    OUTRA("Outra data")
+enum class OpcaoDataRelativa(val labelRes: Int) {
+    HOJE(R.string.chip_today),
+    ONTEM(R.string.chip_yesterday),
+    OUTRA(R.string.choose_another_date)
 }
 
 /**
@@ -808,12 +816,12 @@ private fun DialogAdicionarSessaoPassada(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         ) {
@@ -824,12 +832,12 @@ private fun DialogAdicionarSessaoPassada(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Adicionar Sessão Passada", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.dialog_add_past_title), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 // Seletor de Data
-                Text(text = "Data do Treino:", style = MaterialTheme.typography.labelMedium)
+                Text(text = stringResource(R.string.workout_date_label), style = MaterialTheme.typography.labelMedium)
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -853,7 +861,7 @@ private fun DialogAdicionarSessaoPassada(
                             },
                             label = {
                                 Text(
-                                    text = opcao.rotulo,
+                                    text = stringResource(opcao.labelRes),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -898,13 +906,13 @@ private fun DialogAdicionarSessaoPassada(
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
-                                    text = SimpleDateFormat("dd 'de' MMMM, yyyy", Locale.forLanguageTag("pt-BR")).format(Date(dataHoraEscolhida)),
+                                    text = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(Date(dataHoraEscolhida)),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Escolher outra data",
+                                    text = stringResource(R.string.choose_another_date),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -912,7 +920,7 @@ private fun DialogAdicionarSessaoPassada(
                         }
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar data",
+                            contentDescription = stringResource(R.string.choose_another_date),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
@@ -920,7 +928,7 @@ private fun DialogAdicionarSessaoPassada(
                 }
 
                 // Seletor de Tipo com estilo chip e contorno
-                Text(text = "Tipo de Exercício:", style = MaterialTheme.typography.labelMedium)
+                Text(text = stringResource(R.string.field_exercise_type), style = MaterialTheme.typography.labelMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -928,7 +936,7 @@ private fun DialogAdicionarSessaoPassada(
                     FilterChip(
                         selected = tipo == TipoExercicio.SIX_COUNT,
                         onClick = { tipo = TipoExercicio.SIX_COUNT },
-                        label = { Text("Six-Count", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text(stringResource(TipoExercicio.SIX_COUNT.titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         border = BorderStroke(
                             1.dp,
                             if (tipo == TipoExercicio.SIX_COUNT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -945,7 +953,7 @@ private fun DialogAdicionarSessaoPassada(
                     FilterChip(
                         selected = tipo == TipoExercicio.NAVY_SEAL,
                         onClick = { tipo = TipoExercicio.NAVY_SEAL },
-                        label = { Text("Navy Seal", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        label = { Text(stringResource(TipoExercicio.NAVY_SEAL.titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         border = BorderStroke(
                             1.dp,
                             if (tipo == TipoExercicio.NAVY_SEAL) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -962,7 +970,7 @@ private fun DialogAdicionarSessaoPassada(
 
                 // Campo Duração (Minutos e Segundos)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = "Duração:", style = MaterialTheme.typography.labelMedium)
+                    Text(text = stringResource(R.string.field_duration_label), style = MaterialTheme.typography.labelMedium)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -973,7 +981,7 @@ private fun DialogAdicionarSessaoPassada(
                             onValueChange = { novo ->
                                 minutosTexto = novo.filter { it.isDigit() }.take(3)
                             },
-                            label = { Text("Minutos") },
+                            label = { Text(stringResource(R.string.minutes_short)) },
                             placeholder = { Text("20") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
@@ -993,7 +1001,7 @@ private fun DialogAdicionarSessaoPassada(
                             onValueChange = { novo ->
                                 segundosTexto = novo.filter { it.isDigit() }.take(2)
                             },
-                            label = { Text("Segundos") },
+                            label = { Text(stringResource(R.string.seconds_short)) },
                             placeholder = { Text("00") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
@@ -1017,8 +1025,8 @@ private fun DialogAdicionarSessaoPassada(
                 OutlinedTextField(
                     value = repsTexto,
                     onValueChange = { novo -> repsTexto = novo.filter { it.isDigit() }.take(4) },
-                    label = { Text("Repetições Feitas *") },
-                    placeholder = { Text("Ex.: 45") },
+                    label = { Text(stringResource(R.string.field_reps_completed_required)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_reps_example)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     isError = repsTexto.isNotEmpty() && !repsValidas,
@@ -1031,8 +1039,8 @@ private fun DialogAdicionarSessaoPassada(
                 OutlinedTextField(
                     value = observacao,
                     onValueChange = { observacao = it.take(500) },
-                    label = { Text("Observação (opcional)") },
-                    placeholder = { Text("Ex.: Treino registrado após o parque") },
+                    label = { Text(stringResource(R.string.field_notes_optional)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_notes_example)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("input_adicionar_observacao")
@@ -1055,12 +1063,12 @@ private fun DialogAdicionarSessaoPassada(
                 enabled = repsValidas && duracaoValida,
                 modifier = Modifier.testTag("btn_confirmar_adicionar_passada")
             ) {
-                Text("Adicionar Sessão")
+                Text(stringResource(R.string.btn_add_session))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )
@@ -1130,20 +1138,20 @@ private fun EmptyHistoryView(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Adicionar Sessão Passada", color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.btn_add_past_session), color = MaterialTheme.colorScheme.primary)
             }
         }
     }
 }
 
 private fun formatarDataHora(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale.forLanguageTag("pt-BR"))
-    return sdf.format(Date(timestamp))
+    val df = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT)
+    return df.format(Date(timestamp))
 }
 
 private fun formatarDataApenas(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("pt-BR"))
-    return sdf.format(Date(timestamp))
+    val df = java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT)
+    return df.format(Date(timestamp))
 }
 
 @Preview(name = "HistoryScreen - Font 1.5x", fontScale = 1.5f, showBackground = true)

@@ -1048,25 +1048,25 @@ private fun DialogAjusteSegundos(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = "Intervalo do Minuto $minutoNumero", fontWeight = FontWeight.Bold)
+            Text(text = stringResource(R.string.minute_interval_dialog_title, minutoNumero), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(
-                    text = "Defina o tempo em segundos (entre 2 e 60 s):",
+                    text = stringResource(R.string.minute_interval_dialog_desc),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 OutlinedTextField(
                     value = textoInput,
                     onValueChange = { textoInput = it.filter { char -> char.isDigit() } },
-                    label = { Text("Segundos") },
+                    label = { Text(stringResource(R.string.seconds_short)) },
                     suffix = { Text("s") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = !isValido,
                     supportingText = {
                         if (!isValido) {
-                            Text("Digite um número entre 2 e 60")
+                            Text(stringResource(R.string.error_seconds_range))
                         }
                     },
                     modifier = Modifier
@@ -1075,7 +1075,7 @@ private fun DialogAjusteSegundos(
                 )
 
                 Text(
-                    text = "Valores rápidos:",
+                    text = stringResource(R.string.quick_values_label),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1115,12 +1115,12 @@ private fun DialogAjusteSegundos(
                 enabled = isValido,
                 modifier = Modifier.testTag("btn_confirmar_segundos")
             ) {
-                Text("Aplicar")
+                Text(stringResource(R.string.btn_apply))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(stringResource(R.string.btn_cancel))
             }
         }
     )

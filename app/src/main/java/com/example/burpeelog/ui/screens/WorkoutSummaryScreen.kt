@@ -57,7 +57,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.R
 import androidx.compose.ui.unit.sp
 import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
@@ -338,8 +340,8 @@ fun WorkoutSummaryScreen(
                             onValueChange = { novo ->
                                 repsFeitasTexto = novo.filter { it.isDigit() }.take(4)
                             },
-                            label = { Text("Reps Feitas") },
-                            placeholder = { Text("$valorInicialReps") },
+                            label = { Text(stringResource(R.string.field_reps_completed)) },
+                            placeholder = { Text(valorInicialReps.toString()) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             modifier = Modifier
@@ -443,8 +445,8 @@ fun WorkoutSummaryScreen(
             OutlinedTextField(
                 value = observacao,
                 onValueChange = { observacao = it.take(500) },
-                label = { Text("Observação (opcional)") },
-                placeholder = { Text("Ex.: Bom ritmo, treino em jejum, 10 reps a mais") },
+                label = { Text(stringResource(R.string.field_notes_optional)) },
+                placeholder = { Text(stringResource(R.string.notes_placeholder)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("input_observacao_summary"),
@@ -462,10 +464,10 @@ fun WorkoutSummaryScreen(
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
             title = {
-                Text(text = "Descartar Treino?", fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.discard_workout_title), fontWeight = FontWeight.Bold)
             },
             text = {
-                Text(text = "Os dados desta sessão não serão salvos no histórico.")
+                Text(text = stringResource(R.string.discard_workout_desc))
             },
             confirmButton = {
                 Button(
@@ -477,12 +479,12 @@ fun WorkoutSummaryScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     modifier = Modifier.testTag("btn_confirmar_descarte")
                 ) {
-                    Text("Sim, Descartar")
+                    Text(stringResource(R.string.btn_confirm_discard))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.btn_cancel))
                 }
             }
         )

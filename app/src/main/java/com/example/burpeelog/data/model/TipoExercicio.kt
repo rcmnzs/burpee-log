@@ -24,5 +24,8 @@ enum class TipoExercicio(
         descricao = "Burpee militar com 3 flexões e 2 joelhadas intercaladas."
     );
 
+    val titleRes: Int get() = tituloRes
+    val descRes: Int get() = descricaoRes
+
     override fun toString(): String = titulo
 }

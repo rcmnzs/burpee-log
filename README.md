@@ -24,6 +24,7 @@ This is an independent project and is **not affiliated with or endorsed by the B
 - **Workout history** with full visibility and editing of actual session durations (mm:ss), category filters, manual logging for past workouts, deletion, and interactive progression charts.
 - **Import historical workouts** via CSV files (e.g., exported from Google Sheets) supporting `data`/`date`, `six-counts`, and `navyseals` columns.
 - **Export to CSV** for easy offline backup and data ownership.
+- **Multi-language support**: switch between **English** and **Português (BR)**, or follow system default automatically in settings.
 - **Appearance settings**: choose between Dark, Light, or System Automatic themes with Material 3 styling.
 - **100% offline and private**: no accounts, no internet connection required, and zero telemetry or data collection. Everything stays strictly on your device.
 

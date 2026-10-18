@@ -363,7 +363,7 @@ fun WorkoutActiveScreen(
                         ) {
                             Icon(imageVector = Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Salvar parcial")
+                            Text(stringResource(R.string.btn_save_partial))
                         }
 
                         OutlinedButton(
@@ -385,7 +385,7 @@ fun WorkoutActiveScreen(
                                 tint = MaterialTheme.colorScheme.error
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Descartar treino")
+                            Text(stringResource(R.string.btn_discard_workout))
                         }
 
                         TextButton(
@@ -394,7 +394,7 @@ fun WorkoutActiveScreen(
                                 .fillMaxWidth()
                                 .testTag("btn_continuar_treinando")
                         ) {
-                            Text("Continuar treinando")
+                            Text(stringResource(R.string.btn_continue_training))
                         }
                     }
                 },
