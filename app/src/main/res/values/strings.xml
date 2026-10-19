@@ -306,4 +306,43 @@
         <item quantity="one">%1$d session logged</item>
         <item quantity="other">%1$d sessions logged</item>
     </plurals>
+
+    <!-- Busy Dad Roadmap Levels -->
+    <string name="roadmap_title">Roadmap of Levels</string>
+    <string name="roadmap_subtitle">Official Busy Dad Program Progression</string>
+    <string name="btn_view_roadmap">View Levels</string>
+    <string name="roadmap_banner_title">Busy Dad Program Levels</string>
+    <string name="roadmap_banner_desc">Track your rank from Level 1A to Graduation</string>
+    <string name="roadmap_card_title">Current Level</string>
+    <string name="roadmap_overall_level">Overall Level</string>
+    <string name="roadmap_no_level_yet">Below Level 1A</string>
+    <string name="roadmap_personal_records">Personal Records</string>
+    <string name="roadmap_pr_six_count">Six-Count: %1$d reps</string>
+    <string name="roadmap_pr_navy_seal">Navy Seal: %1$d reps</string>
+    <string name="roadmap_next_goal">Next Goal: %1$s</string>
+    <string name="roadmap_missing_both">Need %1$d Six-Counts and %2$d Navy Seals</string>
+    <string name="roadmap_missing_six_only">Need %1$d Six-Counts (Navy Seal met)</string>
+    <string name="roadmap_missing_navy_only">Need %2$d Navy Seals (Six-Count met)</string>
+    <string name="roadmap_missing_same_week">Hit both targets (%1$d Six-Counts &amp; %2$d Navy Seals) in the same week!</string>
+    <string name="roadmap_all_levels_completed">Congratulations! You have reached Graduation!</string>
+    <string name="roadmap_six_count_level">Six-Count Level: %1$s</string>
+    <string name="roadmap_navy_seal_level">Navy Seal Level: %1$s</string>
+    <string name="status_unlocked">ACHIEVED</string>
+    <string name="status_current">CURRENT</string>
+    <string name="status_next">NEXT</string>
+    <string name="status_locked">LOCKED</string>
+    <string name="unlocked_week_format">Unlocked: week of %1$s</string>
+    <string name="roadmap_target_format">Six-Count: %1$d reps  •  Navy Seal: %2$d reps</string>
+    <string name="roadmap_footer_note">Source: busydadtraining.com/levels — Level unlocked when Six-Count and Navy Seal targets are reached in the same week.</string>
+    <string name="level_1a">Level 1A</string>
+    <string name="level_1b">Level 1B</string>
+    <string name="level_1c">Level 1C</string>
+    <string name="level_1d">Level 1D</string>
+    <string name="level_2a">Level 2A</string>
+    <string name="level_2b">Level 2B</string>
+    <string name="level_3a">Level 3A</string>
+    <string name="level_3b">Level 3B</string>
+    <string name="level_4a">Level 4A</string>
+    <string name="level_4b">Level 4B</string>
+    <string name="level_graduation">Graduation</string>
 </resources>

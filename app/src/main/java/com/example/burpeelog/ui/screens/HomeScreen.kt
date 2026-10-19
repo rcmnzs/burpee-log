@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -33,6 +34,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import com.example.burpeelog.domain.BusyDadRoadmapCalculator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -97,6 +100,7 @@ private val HeatmapLevel4 = Color(0xFF39D353) // Acima de 75% do recorde
 fun HomeScreen(
     onIniciarTreino: () -> Unit = {},
     onAbrirDados: () -> Unit = {},
+    onAbrirRoadmap: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -163,6 +167,16 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = onAbrirRoadmap,
+                        modifier = Modifier.testTag("btn_topbar_roadmap")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MilitaryTech,
+                            contentDescription = stringResource(R.string.roadmap_title),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(
                         onClick = onAbrirDados,
                         modifier = Modifier.testTag("btn_abrir_dados")
@@ -248,6 +262,12 @@ fun HomeScreen(
             CardRecordes(
                 recordeSix = recordeSixCount,
                 recordeNavy = recordeNavySeal
+            )
+
+            // Card 2.4: Roadmap de Níveis do Busy Dad Program
+            CardBannerRoadmap(
+                sessoes = sessoes,
+                onVerNiveis = onAbrirRoadmap
             )
 
             // 3. MAPA DE CALOR (Estilo GitHub Contribution)
@@ -592,6 +612,96 @@ private fun CardRecordes(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(text = stringResource(R.string.navy_seal_short), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(text = if (recordeNavy > 0) "$recordeNavy reps" else "-", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Card informativo e botão de acesso ao Roadmap de Níveis do Busy Dad Program.
+ */
+@Composable
+private fun CardBannerRoadmap(
+    sessoes: List<Sessao>,
+    onVerNiveis: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val progress = remember(sessoes) {
+        BusyDadRoadmapCalculator.calcularProgresso(sessoes)
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("card_banner_roadmap"),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MilitaryTech,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.roadmap_banner_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = progress.nivelGeralAtual?.let { stringResource(it.titleRes) }
+                                ?: stringResource(R.string.roadmap_no_level_yet),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+                FilledTonalButton(
+                    onClick = onVerNiveis,
+                    modifier = Modifier.testTag("btn_ver_niveis_roadmap"),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.btn_view_roadmap),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

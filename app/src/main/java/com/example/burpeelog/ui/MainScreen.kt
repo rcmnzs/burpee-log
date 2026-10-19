@@ -23,17 +23,21 @@ import com.example.burpeelog.ui.navigation.NavTab
 import com.example.burpeelog.ui.screens.DadosScreen
 import com.example.burpeelog.ui.screens.HistoryScreen
 import com.example.burpeelog.ui.screens.HomeScreen
+import com.example.burpeelog.ui.screens.RoadmapScreen
 import com.example.burpeelog.ui.screens.WorkoutScreen
 
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     var selectedTab by rememberSaveable { mutableStateOf(NavTab.INICIO) }
     var mostrandoDados by rememberSaveable { mutableStateOf(false) }
+    var mostrandoRoadmap by rememberSaveable { mutableStateOf(false) }
 
-    // If on DadosScreen or a secondary tab, pressing back navigates back appropriately
-    BackHandler(enabled = mostrandoDados || selectedTab != NavTab.INICIO) {
+    // If on DadosScreen, RoadmapScreen, or a secondary tab, pressing back navigates back appropriately
+    BackHandler(enabled = mostrandoDados || mostrandoRoadmap || selectedTab != NavTab.INICIO) {
         if (mostrandoDados) {
             mostrandoDados = false
+        } else if (mostrandoRoadmap) {
+            mostrandoRoadmap = false
         } else {
             selectedTab = NavTab.INICIO
         }
@@ -42,6 +46,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
     if (mostrandoDados) {
         DadosScreen(
             onNavigateBack = { mostrandoDados = false },
+            modifier = modifier
+        )
+    } else if (mostrandoRoadmap) {
+        RoadmapScreen(
+            onNavigateBack = { mostrandoRoadmap = false },
             modifier = modifier
         )
     } else {
@@ -89,7 +98,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 when (tab) {
                     NavTab.INICIO -> HomeScreen(
                         onIniciarTreino = { selectedTab = NavTab.TREINO },
-                        onAbrirDados = { mostrandoDados = true }
+                        onAbrirDados = { mostrandoDados = true },
+                        onAbrirRoadmap = { mostrandoRoadmap = true }
                     )
                     NavTab.TREINO -> WorkoutScreen()
                     NavTab.HISTORICO -> HistoryScreen()
