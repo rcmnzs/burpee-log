@@ -11,13 +11,23 @@ The [Busy Dad Program](https://www.youtube.com/@busydadtraining) is a minimalist
 
 This is an independent project and is **not affiliated with or endorsed by the Busy Dad Training channel or program**.
 
+## Latest Version: v1.0.8
+
 ## Features
 
-- **Customizable 20-minute timer** with flexible repetition pacing patterns:
+- **Busy Dad Program Levels Roadmap (v1.0.8)**:
+  - Official progression roadmap from **Level 1A to Graduation** ([busydadtraining.com/levels](https://busydadtraining.com/levels)).
+  - Automatic detection of unlocked levels based on the official **same-week rule** (Monday to Sunday) requiring target reps in both Six-Count and Navy Seal sessions.
+  - Overall level badge, individual discipline ranks, personal bests, and calculation of exact remaining reps and percentage to reach the next milestone.
+  - Visual status for all levels: Achieved (with unlock date), Next (with progress bar), and Locked.
+- **Optional 7-minute warmup protocol**:
+  - Follows the official Busy Dad warmup structure: 1 min burpee → 2 min rest → 1 min burpee → 3 min rest before the main 20-minute session.
+  - Distinct auditory and visual cues indicating non-scoring warmup reps and rest periods.
+- **Customizable 20-minute workout timer** with flexible repetition pacing patterns:
   - Example `[10]`: 1 repetition every 10 seconds.
   - Example `[30, 20]`: 1 repetition every 30s during the first minute; every 20s during the second minute; and the cycle repeats.
   - Automatic calculation of projected total repetitions.
-- **Audio beeps and haptic vibration cues** on every rep, operating reliably even with the screen locked or turned off.
+- **Audio beeps and haptic vibration cues** on every rep, operating reliably even with the screen locked or turned off via foreground service.
 - **Session summary**: adjust actual completed repetitions and attach optional workout notes.
 - **GitHub-style dashboard**: 12-month activity heatmap where cell colors represent daily repetition volume (Six-Count, Navy Seal, or combined, relative to personal records).
 - **Weekly summary**: weekly active minutes calculated from real session durations (80-minute weekly goal), full-week streak counter (4800s active training), total reps, and all-time personal bests.
@@ -47,7 +57,7 @@ data,six-counts,navyseals
 This project is **open source**. Anyone can install and test it.
 
 **Option 1: Install the APK (Recommended)**
-1. Go to the [Releases](https://github.com/rcmnzs/burpee-log/releases) page and download the latest `.apk` file (e.g., `BurpeeLog-v1.0.5.apk`).
+1. Go to the [Releases](https://github.com/rcmnzs/burpee-log/releases) page and download the latest `.apk` file (e.g., `BurpeeLog-v1.0.8.apk`).
 2. On Android, allow installing apps from unknown sources if prompted by your browser or file manager.
 3. Open the downloaded APK and confirm the installation.
 4. **How to update:** To update to a newer version, simply download the latest APK from the Releases page and install it directly over the existing app. Because official releases are signed with the same key, Android updates the application while keeping your entire workout history and preferences intact.
