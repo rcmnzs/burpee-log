@@ -16,8 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.0.7] - 2026-10-18
 
-### Added
-- Suporte a inglês e português (BR) com opção de troca nas configurações
+### Fixed
+
+- Improved visibility of the warmup toggle when disabled: thumb and track now use distinct colors with an outline border, making the control clearly identifiable as interactive
 
 ## [1.0.6] - 2026-10-16
 
