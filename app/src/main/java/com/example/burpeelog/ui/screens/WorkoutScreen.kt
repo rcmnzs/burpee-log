@@ -60,6 +60,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.example.R
@@ -317,13 +318,13 @@ private fun WorkoutConfigContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Padrão de Intervalos por Minuto",
+                        text = stringResource(R.string.cadence_by_minute_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Ciclo de ${uiState.padraoIntervalos.size} min (repete até 20 min)",
+                        text = stringResource(R.string.cycle_info_format, uiState.padraoIntervalos.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -341,7 +342,7 @@ private fun WorkoutConfigContent(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Adicionar Minuto",
+                            text = stringResource(R.string.add_minute),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -426,7 +427,7 @@ private fun DuracaoFixaInfoCard() {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Duração Fixa: $DURACAO_MINUTOS Minutos",
+                        text = stringResource(R.string.fixed_duration_format, DURACAO_MINUTOS),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -442,7 +443,7 @@ private fun DuracaoFixaInfoCard() {
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = "PADRÃO",
+                            text = stringResource(R.string.badge_standard),
                             fontSize = 9.sp,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold,
@@ -452,7 +453,7 @@ private fun DuracaoFixaInfoCard() {
                     }
                 }
                 Text(
-                    text = "Regra Busy Dad Program: sessões de 20 min sem duração editável.",
+                    text = stringResource(R.string.busy_dad_fixed_rule),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -507,7 +508,7 @@ private fun CardAquecimento(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "1 min burpee → 2 min descanso → 1 min burpee → 3 min descanso",
+                    text = stringResource(R.string.warmup_flow_steps),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -546,15 +547,18 @@ private fun SeletorTipoExercicio(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Tipo de Exercício",
+                text = stringResource(R.string.field_exercise_type),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
             val textoSugestao = when {
-                ultimaSessao == null -> "Sugestão inicial"
-                else -> "Alternância da última (${ultimaSessao.tipo.titulo.substringBefore(" ")})"
+                ultimaSessao == null -> stringResource(R.string.initial_suggestion)
+                else -> stringResource(
+                    R.string.alternation_from_last,
+                    stringResource(if (ultimaSessao.tipo == TipoExercicio.SIX_COUNT) R.string.six_count_short else R.string.navy_seal_short)
+                )
             }
             Text(
                 text = textoSugestao,
@@ -626,7 +630,7 @@ private fun TipoExercicioCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (tipo == TipoExercicio.SIX_COUNT) "Six-Count" else "Navy Seal",
+                    text = stringResource(if (tipo == TipoExercicio.SIX_COUNT) R.string.six_count_short else R.string.navy_seal_short),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = if (selecionado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -644,7 +648,7 @@ private fun TipoExercicioCard(
                             .padding(horizontal = 5.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = "SUGERIDO",
+                            text = stringResource(R.string.badge_suggested),
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary,
@@ -656,7 +660,7 @@ private fun TipoExercicioCard(
             }
 
             Text(
-                text = if (tipo == TipoExercicio.SIX_COUNT) "6 tempos • 1 flexão" else "Militar • 3 flexões",
+                text = stringResource(if (tipo == TipoExercicio.SIX_COUNT) R.string.six_count_short_desc else R.string.navy_seal_short_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -693,13 +697,13 @@ private fun ResumoPreviaCard(
             ) {
                 Column {
                     Text(
-                        text = "TOTAL PREVISTO (20 MIN)",
+                        text = stringResource(R.string.total_projected_title),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "$repsPrevistas reps",
+                        text = stringResource(R.string.projected_reps_unit, repsPrevistas),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
@@ -710,13 +714,13 @@ private fun ResumoPreviaCard(
                 Column(horizontalAlignment = Alignment.End) {
                     val mediaPorMinuto = String.format("%.1f", repsPrevistas / 20.0)
                     Text(
-                        text = "RITMO MÉDIO",
+                        text = stringResource(R.string.average_pace_title),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "$mediaPorMinuto /min",
+                        text = stringResource(R.string.per_minute_format, mediaPorMinuto),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.secondary
@@ -741,7 +745,11 @@ private fun ResumoPreviaCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Prévia do Ciclo ($tamanhoCicloMinutos ${if (tamanhoCicloMinutos == 1) "minuto" else "minutos"}):",
+                        text = stringResource(
+                            R.string.cycle_preview_title,
+                            tamanhoCicloMinutos,
+                            pluralStringResource(R.plurals.minutes_count_plural, tamanhoCicloMinutos)
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -813,12 +821,12 @@ private fun ItemIntervaloCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Minuto ${index + 1}",
+                            text = stringResource(R.string.minute_pattern_label, index + 1),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "$repsNoMinuto ${if (repsNoMinuto == 1) "rep" else "reps"} (em ${instantes.joinToString("s, ")}s)",
+                            text = "${pluralStringResource(R.plurals.reps_count_plural, repsNoMinuto, repsNoMinuto)} (${stringResource(R.string.at_seconds_format, instantes.joinToString("s, ") + "s")})",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -835,7 +843,7 @@ private fun ItemIntervaloCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowUpward,
-                            contentDescription = "Mover para cima",
+                            contentDescription = stringResource(R.string.btn_move_up),
                             tint = if (index > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -849,7 +857,7 @@ private fun ItemIntervaloCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ArrowDownward,
-                            contentDescription = "Mover para baixo",
+                            contentDescription = stringResource(R.string.btn_move_down),
                             tint = if (index < totalItens - 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -863,7 +871,7 @@ private fun ItemIntervaloCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Remover minuto",
+                            contentDescription = stringResource(R.string.btn_delete_minute),
                             tint = if (totalItens > 1) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
                         )
                     }
@@ -930,7 +938,7 @@ private fun ItemIntervaloCard(
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Icon(
                                     imageVector = Icons.Default.Edit,
-                                    contentDescription = "Editar valor",
+                                    contentDescription = stringResource(R.string.btn_edit_value),
                                     modifier = Modifier.size(12.dp),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

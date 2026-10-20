@@ -239,7 +239,7 @@ private fun CardDestaqueRoadmap(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Six-Count",
+                                text = stringResource(R.string.six_count_short),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -277,7 +277,7 @@ private fun CardDestaqueRoadmap(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Navy Seal",
+                                text = stringResource(R.string.navy_seal_short),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.secondary
@@ -586,7 +586,7 @@ private fun CardNivelItem(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${(itemStatus.progressoGeral * 100).toInt()}% atingido",
+                            text = stringResource(R.string.percent_achieved, (itemStatus.progressoGeral * 100).toInt()),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFFFFB300),
                             fontWeight = FontWeight.Bold

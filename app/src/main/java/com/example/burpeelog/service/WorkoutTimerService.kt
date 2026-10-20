@@ -86,10 +86,10 @@ class WorkoutTimerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Treino Ativo",
+                getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notificação persistente durante o treino de 20 minutos"
+                description = getString(R.string.notification_channel_desc)
                 setShowBadge(false)
             }
             val manager = getSystemService(NotificationManager::class.java)
@@ -134,10 +134,18 @@ class WorkoutTimerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val titulo = if (isPaused) "⏸ Treino Pausado • $tipo" else "🔥 Treino Ativo • $tipo"
-        val texto = "$tempoRestante restantes • Rep $repAtual de $totalReps"
+        val titulo = if (isPaused) {
+            getString(R.string.notification_title_paused, tipo)
+        } else {
+            getString(R.string.notification_title_active, tipo)
+        }
+        val texto = getString(R.string.notification_text_format, tempoRestante, repAtual, totalReps)
 
-        val actionTexto = if (isPaused) "Retomar" else "Pausar"
+        val actionTexto = if (isPaused) {
+            getString(R.string.notification_action_resume)
+        } else {
+            getString(R.string.notification_action_pause)
+        }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(titulo)
@@ -147,7 +155,7 @@ class WorkoutTimerService : Service() {
             .setOngoing(!isPaused)
             .setOnlyAlertOnce(true)
             .addAction(0, actionTexto, pendingIntentPausaRetoma)
-            .addAction(0, "Encerrar", pendingIntentEncerrar)
+            .addAction(0, getString(R.string.notification_action_stop), pendingIntentEncerrar)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

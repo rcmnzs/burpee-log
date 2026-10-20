@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
+import com.example.R
 import com.example.burpeelog.data.model.DURACAO_MINUTOS
 import com.example.burpeelog.data.model.TipoExercicio
 import com.example.burpeelog.domain.IntervaloCalculator
@@ -301,7 +302,7 @@ class WorkoutSessionManager(
                 tempoRestante = formatted,
                 repAtual = warmupReps,
                 totalReps = (duracaoSegundos / intervalo) + 1,
-                tipo = "Aquecimento • ${currentState.tipo.titulo}",
+                tipo = "${context.getString(R.string.warmup_title)} • ${context.getString(currentState.tipo.tituloRes)}",
                 isPaused = false
             )
 
@@ -508,7 +509,7 @@ class WorkoutSessionManager(
                 tempoRestante = tempoFormatado,
                 repAtual = repAtualDisplay,
                 totalReps = instantes.size,
-                tipo = currentState.tipo.titulo,
+                tipo = context.getString(currentState.tipo.tituloRes),
                 isPaused = false
             )
 
@@ -527,7 +528,7 @@ class WorkoutSessionManager(
             tempoRestante = if (currentPhase.isWarmup) _state.value.warmupTempoRestanteFormatado else _state.value.tempoFormatado,
             repAtual = if (currentPhase.isWarmup) _state.value.warmupRepsCompletadas else _state.value.currentRepDisplay,
             totalReps = _state.value.totalRepsPrevistas,
-            tipo = _state.value.tipo.titulo,
+            tipo = context.getString(_state.value.tipo.tituloRes),
             isPaused = true
         )
     }
@@ -545,7 +546,7 @@ class WorkoutSessionManager(
             tempoRestante = if (originalPhase.isWarmup) _state.value.warmupTempoRestanteFormatado else _state.value.tempoFormatado,
             repAtual = if (originalPhase.isWarmup) _state.value.warmupRepsCompletadas else _state.value.currentRepDisplay,
             totalReps = _state.value.totalRepsPrevistas,
-            tipo = _state.value.tipo.titulo,
+            tipo = context.getString(_state.value.tipo.tituloRes),
             isPaused = false
         )
     }

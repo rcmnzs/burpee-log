@@ -345,4 +345,61 @@
     <string name="level_4a">Level 4A</string>
     <string name="level_4b">Level 4B</string>
     <string name="level_graduation">Graduation</string>
+
+    <!-- Workout Configuration & Details Extracted Strings -->
+    <string name="cadence_by_minute_title">Interval Pattern per Minute</string>
+    <string name="cycle_info_format">Cycle of %1$d min (repeats up to 20 min)</string>
+    <string name="badge_standard">STANDARD</string>
+    <string name="busy_dad_fixed_rule">Busy Dad Program rule: 20-min sessions with non-editable duration.</string>
+    <string name="initial_suggestion">Initial suggestion</string>
+    <string name="alternation_from_last">Alternation from last (%1$s)</string>
+    <string name="badge_suggested">SUGGESTED</string>
+    <string name="six_count_short_desc">6 counts • 1 push-up</string>
+    <string name="navy_seal_short_desc">Military • 3 push-ups</string>
+    <string name="total_projected_title">TOTAL PROJECTED (20 MIN)</string>
+    <string name="average_pace_title">AVERAGE PACE</string>
+    <string name="cycle_preview_title">Cycle Preview (%1$d %2$s):</string>
+    <string name="at_seconds_format">at %1$s</string>
+    <string name="btn_move_up">Move up</string>
+    <string name="btn_move_down">Move down</string>
+    <string name="btn_delete_minute">Remove minute</string>
+    <string name="btn_edit_value">Edit value</string>
+    <string name="warmup_block_1_desc">Block 1 of 4 • 1 min Burpees</string>
+    <string name="warmup_block_2_desc">Block 2 of 4 • 2 min Rest</string>
+    <string name="warmup_block_3_desc">Block 3 of 4 • 1 min Burpees</string>
+    <string name="warmup_block_4_desc">Block 4 of 4 • 3 min Rest</string>
+    <string name="reps_short">reps</string>
+
+    <plurals name="minutes_count_plural">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="reps_count_plural">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+
+    <!-- Additional UI & Notification Strings -->
+    <string name="fixed_duration_format">Fixed Duration: %1$d Minutes</string>
+    <string name="warmup_flow_steps">1 min burpee → 2 min rest → 1 min burpee → 3 min rest</string>
+    <string name="percent_achieved">%1$d%% achieved</string>
+    <string name="btn_increase_rep">Increase 1 rep</string>
+    <string name="btn_decrease_rep">Decrease 1 rep</string>
+    <string name="time_elapsed_parentheses">%1$s (%2$dm %3$ds)</string>
+    <string name="notification_channel_name">Active Workout</string>
+    <string name="notification_channel_desc">Persistent notification during 20-minute workout</string>
+    <string name="notification_title_active">🔥 Active Workout • %1$s</string>
+    <string name="notification_title_paused">⏸ Workout Paused • %1$s</string>
+    <string name="notification_text_format">%1$s remaining • Rep %2$d of %3$d</string>
+    <string name="notification_action_resume">Resume</string>
+    <string name="notification_action_pause">Pause</string>
+    <string name="notification_action_stop">Finish</string>
+    <string name="error_duration_empty">Enter minutes and seconds.</string>
+    <string name="error_duration_invalid_numbers">Invalid numeric values.</string>
+    <string name="error_duration_seconds_range">Seconds must be between 0 and 59.</string>
+    <string name="error_duration_min">Minimum duration is 1 second (00:01).</string>
+    <string name="error_duration_max">Maximum duration is 3600 seconds (60:00).</string>
+    <string name="per_minute_format">%1$s /min</string>
+    <string name="exercise_reps_format">%1$s: %2$d reps</string>
+    <string name="csv_row_format">R%1$d: %2$s</string>
 </resources>

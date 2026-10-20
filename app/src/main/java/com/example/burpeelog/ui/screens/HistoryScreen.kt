@@ -113,12 +113,16 @@ fun HistoryScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Histórico de Treinos",
+                            text = stringResource(R.string.history_title),
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge
                         )
                         Text(
-                            text = "${uiState.totalGeral} ${if (uiState.totalGeral == 1) "sessão registrada" else "sessões registradas"}",
+                            text = pluralStringResource(
+                                R.plurals.sessions_registered_count,
+                                uiState.totalGeral,
+                                uiState.totalGeral
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -254,7 +258,7 @@ private fun FiltroTipoBar(
             onClick = { onFiltroChange(null) },
             label = {
                 Text(
-                    text = "Todos ($totalGeral)",
+                    text = stringResource(R.string.chip_all_with_count, totalGeral),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium
@@ -275,7 +279,7 @@ private fun FiltroTipoBar(
             onClick = { onFiltroChange(TipoExercicio.SIX_COUNT) },
             label = {
                 Text(
-                    text = "Six-Count ($totalSixCount)",
+                    text = stringResource(R.string.chip_six_count_with_count, totalSixCount),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium
@@ -296,7 +300,7 @@ private fun FiltroTipoBar(
             onClick = { onFiltroChange(TipoExercicio.NAVY_SEAL) },
             label = {
                 Text(
-                    text = "Navy Seal ($totalNavySeal)",
+                    text = stringResource(R.string.chip_navy_seal_with_count, totalNavySeal),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium
@@ -380,7 +384,7 @@ private fun SessaoItemCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = sessao.tipo.titulo,
+                            text = stringResource(sessao.tipo.tituloRes),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -408,7 +412,7 @@ private fun SessaoItemCard(
                             .testTag("badge_importada_${sessao.id}")
                     ) {
                         Text(
-                            text = "IMPORTADA",
+                            text = stringResource(R.string.badge_imported),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.secondary
@@ -436,7 +440,7 @@ private fun SessaoItemCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "reps",
+                        text = stringResource(R.string.reps_short),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -450,7 +454,7 @@ private fun SessaoItemCard(
                 ) {
                     if (sessao.repsPrevistas != null) {
                         Text(
-                            text = "Meta: ${sessao.repsPrevistas} reps",
+                            text = stringResource(R.string.target_reps_format, sessao.repsPrevistas),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -512,7 +516,7 @@ private fun SessaoItemCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar sessão",
+                        contentDescription = stringResource(R.string.btn_edit),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
@@ -524,7 +528,7 @@ private fun SessaoItemCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Excluir sessão",
+                        contentDescription = stringResource(R.string.btn_delete),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp)
                     )
@@ -700,13 +704,16 @@ private fun DialogEditarSessao(
                                 .testTag("input_editar_duracao_segundos")
                         )
                     }
-                    if (!duracaoValida && erroDuracaoMensagem != null) {
-                        Text(
-                            text = erroDuracaoMensagem,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
-                        )
+                    if (!duracaoValida) {
+                        val erroTexto = validacaoDuracao.mensagemErroRes?.let { stringResource(it) } ?: erroDuracaoMensagem
+                        if (erroTexto != null) {
+                            Text(
+                                text = erroTexto,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                            )
+                        }
                     }
                 }
 
@@ -1011,13 +1018,16 @@ private fun DialogAdicionarSessaoPassada(
                                 .testTag("input_adicionar_duracao_segundos")
                         )
                     }
-                    if (!duracaoValida && erroDuracaoMensagem != null) {
-                        Text(
-                            text = erroDuracaoMensagem,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
-                        )
+                    if (!duracaoValida) {
+                        val erroTexto = validacaoDuracao.mensagemErroRes?.let { stringResource(it) } ?: erroDuracaoMensagem
+                        if (erroTexto != null) {
+                            Text(
+                                text = erroTexto,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                            )
+                        }
                     }
                 }
 
@@ -1112,15 +1122,15 @@ private fun EmptyHistoryView(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = if (filtroAtivo) "Nenhuma Sessão com Este Filtro" else "Nenhum Treino Registrado",
+                text = if (filtroAtivo) stringResource(R.string.empty_filter_title) else stringResource(R.string.empty_history_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (filtroAtivo) "Tente selecionar outro filtro ou adicione uma sessão passada."
-                else "Conclua uma sessão de 20 minutos na aba Treino ou adicione uma sessão passada manualmente.",
+                text = if (filtroAtivo) stringResource(R.string.empty_filter_desc)
+                else stringResource(R.string.empty_history_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

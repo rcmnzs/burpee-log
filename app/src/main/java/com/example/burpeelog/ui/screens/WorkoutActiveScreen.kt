@@ -154,7 +154,7 @@ fun WorkoutActiveScreen(
                 },
                 actions = {
                     Text(
-                        text = state.tipo.titulo.substringBefore(" "),
+                        text = stringResource(if (state.tipo == TipoExercicio.SIX_COUNT) R.string.six_count_short else R.string.navy_seal_short),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -178,7 +178,7 @@ fun WorkoutActiveScreen(
             when {
                 state.phase == WorkoutPhase.COUNTDOWN -> {
                     // Contagem regressiva de 5 segundos
-                    CountdownView(countdown = state.countdownSeconds, tipoTitulo = state.tipo.titulo)
+                    CountdownView(countdown = state.countdownSeconds, tipoTitulo = stringResource(state.tipo.tituloRes))
                 }
                 isWarmupActive -> {
                     // Tela de Aquecimento (fases 1 a 4)
@@ -324,14 +324,14 @@ fun WorkoutActiveScreen(
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Tempo realizado: ${minutos}m ${segundos}s (${state.tempoFormatado} restantes)."
+                            text = stringResource(R.string.time_done_format, minutos, segundos, state.tempoFormatado)
                         )
                         Text(
-                            text = "Repetições feitas: $repsFeitas de ${state.totalRepsPrevistas} reps."
+                            text = stringResource(R.string.reps_done_format, repsFeitas, state.totalRepsPrevistas)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Escolha como deseja prosseguir com a sessão:",
+                            text = stringResource(R.string.finish_options_prompt),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -495,11 +495,11 @@ private fun WarmupWorkoutView(
     }
 
     val blockDescription = when (currentEffectivePhase) {
-        WorkoutPhase.WARMUP_BURPEE_1 -> "Bloco 1 de 4 • 1 min de Burpees"
-        WorkoutPhase.WARMUP_REST_1 -> "Bloco 2 de 4 • 2 min de Descanso"
-        WorkoutPhase.WARMUP_BURPEE_2 -> "Bloco 3 de 4 • 1 min de Burpees"
-        WorkoutPhase.WARMUP_REST_2 -> "Bloco 4 de 4 • 3 min de Descanso"
-        else -> "Aquecimento"
+        WorkoutPhase.WARMUP_BURPEE_1 -> stringResource(R.string.warmup_block_1_desc)
+        WorkoutPhase.WARMUP_REST_1 -> stringResource(R.string.warmup_block_2_desc)
+        WorkoutPhase.WARMUP_BURPEE_2 -> stringResource(R.string.warmup_block_3_desc)
+        WorkoutPhase.WARMUP_REST_2 -> stringResource(R.string.warmup_block_4_desc)
+        else -> stringResource(R.string.warmup_title)
     }
 
     val animatedRepProgress by animateFloatAsState(
@@ -596,7 +596,7 @@ private fun WarmupWorkoutView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "TEMPO RESTANTE DO BLOCO",
+                            text = stringResource(R.string.block_time_remaining),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -635,14 +635,14 @@ private fun WarmupWorkoutView(
                         ) {
                             Column {
                                 Text(
-                                    text = "AQUECIMENTO (REPS NÃO SOMAM)",
+                                    text = stringResource(R.string.warmup_reps_not_counted),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Rep ${state.warmupRepsCompletadas}",
+                                    text = stringResource(R.string.rep_counter_format, state.warmupRepsCompletadas),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = MaterialTheme.colorScheme.onSurface,
@@ -651,9 +651,9 @@ private fun WarmupWorkoutView(
                             }
                             Text(
                                 text = if (state.secondsUntilNextRep > 0) {
-                                    "Próxima em ${state.secondsUntilNextRep}s"
+                                    stringResource(R.string.next_in_seconds_format, state.secondsUntilNextRep)
                                 } else {
-                                    "Aguardando..."
+                                    stringResource(R.string.waiting)
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
@@ -694,7 +694,7 @@ private fun WarmupWorkoutView(
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                                 Text(
-                                    text = "PRÓXIMA REP",
+                                    text = stringResource(R.string.next_rep_badge),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -727,7 +727,7 @@ private fun WarmupWorkoutView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "DESCANSO E RECUPERAÇÃO",
+                            text = stringResource(R.string.rest_and_recovery),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary,
@@ -744,7 +744,7 @@ private fun WarmupWorkoutView(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Respire fundo, relaxe os músculos e prepare-se.",
+                            text = stringResource(R.string.rest_instructions),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -773,14 +773,14 @@ private fun WarmupWorkoutView(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = if (isLastRest) "PREPARE-SE PARA OS 20 MINUTOS" else "AQUECIMENTO EM PROGRESSO",
+                                text = if (isLastRest) stringResource(R.string.prepare_for_20_minutes) else stringResource(R.string.warmup_in_progress),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             val textoContagem = stringResource(R.string.workout_starts_in, state.warmupTempoRestanteFormatado)
                             Text(
-                                text = if (isLastRest) textoContagem else "Treino principal logo após os descansos",
+                                text = if (isLastRest) textoContagem else stringResource(R.string.main_workout_after_rest),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -884,13 +884,13 @@ private fun ActiveWorkoutView(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Minuto ${state.currentMinute} de $DURACAO_MINUTOS",
+                    text = stringResource(R.string.minute_x_of_total, state.currentMinute, DURACAO_MINUTOS),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${(state.progressOverall * 100).toInt()}% concluído",
+                    text = stringResource(R.string.percent_completed, (state.progressOverall * 100).toInt()),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -926,7 +926,7 @@ private fun ActiveWorkoutView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "TEMPO RESTANTE",
+                    text = stringResource(R.string.time_remaining),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -983,14 +983,14 @@ private fun ActiveWorkoutView(
                 ) {
                     Column {
                         Text(
-                            text = "CONTAGEM DE REPETIÇÕES",
+                            text = stringResource(R.string.rep_counting),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Rep ${state.currentRepDisplay} de ${state.totalRepsPrevistas}",
+                            text = stringResource(R.string.rep_x_of_y, state.currentRepDisplay, state.totalRepsPrevistas),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -999,9 +999,9 @@ private fun ActiveWorkoutView(
                     }
                     Text(
                         text = if (state.secondsUntilNextRep > 0) {
-                            "Próxima rep em ${state.secondsUntilNextRep}s"
+                            stringResource(R.string.next_rep_in_format, state.secondsUntilNextRep)
                         } else {
-                            "Última repetição!"
+                            stringResource(R.string.last_repetition)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
@@ -1042,7 +1042,7 @@ private fun ActiveWorkoutView(
                             color = MaterialTheme.colorScheme.secondary
                         )
                         Text(
-                            text = "PRÓXIMA REP",
+                            text = stringResource(R.string.next_rep_badge),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

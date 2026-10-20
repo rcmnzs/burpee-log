@@ -747,8 +747,6 @@ private fun SeletorModoHeatmap(
     }
 }
 
-private val MESES_3_LETRAS = arrayOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
-
 /**
  * Grade do Mapa de Calor com rótulos de dias à esquerda e scroll horizontal
  * iniciando na semana atual (lado direito).
@@ -777,13 +775,21 @@ private fun HeatmapGrid(
             modifier = Modifier.padding(top = 21.dp, end = 6.dp),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            val diasRotulos = listOf("Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom")
-            diasRotulos.forEachIndexed { idx, label ->
+            val diasRotulos = listOf(
+                stringResource(R.string.day_mon),
+                "",
+                stringResource(R.string.day_wed),
+                "",
+                stringResource(R.string.day_fri),
+                "",
+                stringResource(R.string.day_sun)
+            )
+            diasRotulos.forEachIndexed { _, label ->
                 Box(
                     modifier = Modifier.size(width = 28.dp, height = 14.dp),
                     contentAlignment = Alignment.CenterEnd
                 ) {
-                    if (idx % 2 == 0) { // Mostrar Seg, Qua, Sex, Dom para manter limpo
+                    if (label.isNotEmpty()) { // Mostrar Seg, Qua, Sex, Dom para manter limpo
                         Text(
                             text = label,
                             fontSize = 9.sp,
@@ -811,7 +817,9 @@ private fun HeatmapGrid(
 
             semanas.forEachIndexed { _, semana ->
                 val primeiraDataSemana = semana.firstOrNull()?.date
-                val mesNome = if (primeiraDataSemana != null) MESES_3_LETRAS[primeiraDataSemana.month.ordinal] else ""
+                val mesNome = if (primeiraDataSemana != null) {
+                    primeiraDataSemana.month.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                } else ""
 
                 val deveMostrarMes = mesNome.isNotEmpty() && mesNome != ultimoMesRotulado && primeiraDataSemana?.dayOfMonth != null && primeiraDataSemana.dayOfMonth <= 7
                 if (deveMostrarMes) {
@@ -891,7 +899,7 @@ private fun DetalhesDiaSelecionadoCard(
     recordeSix: Int,
     recordeNavy: Int
 ) {
-    val formatter = remember { DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("pt-BR")) }
+    val formatter = remember { DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.FULL) }
     val dataTexto = dia.date.format(formatter).replaceFirstChar { it.uppercase() }
 
     val pctSix = if (recordeSix > 0) ((dia.repsSixCount.toFloat() / recordeSix.toFloat()) * 100).toInt() else 0
@@ -924,7 +932,7 @@ private fun DetalhesDiaSelecionadoCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Six-Count: ${dia.repsSixCount} reps",
+                            text = stringResource(R.string.roadmap_pr_six_count, dia.repsSixCount),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary,
@@ -932,7 +940,7 @@ private fun DetalhesDiaSelecionadoCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = if (recordeSix > 0) "$pctSix% do recorde ($recordeSix)" else "Sem recorde",
+                            text = if (recordeSix > 0) stringResource(R.string.pct_of_record, pctSix, recordeSix) else stringResource(R.string.no_record),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -942,7 +950,7 @@ private fun DetalhesDiaSelecionadoCard(
 
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Navy Seal: ${dia.repsNavySeal} reps",
+                            text = stringResource(R.string.roadmap_pr_navy_seal, dia.repsNavySeal),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.secondary,
@@ -950,7 +958,7 @@ private fun DetalhesDiaSelecionadoCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = if (recordeNavy > 0) "$pctNavy% do recorde ($recordeNavy)" else "Sem recorde",
+                            text = if (recordeNavy > 0) stringResource(R.string.pct_of_record, pctNavy, recordeNavy) else stringResource(R.string.no_record),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -960,7 +968,7 @@ private fun DetalhesDiaSelecionadoCard(
                 }
             } else {
                 Text(
-                    text = "Nenhum treino realizado neste dia.",
+                    text = stringResource(R.string.no_workouts_on_this_day),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -988,7 +996,7 @@ private fun LegendaHeatmap(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Menos",
+                text = stringResource(R.string.heatmap_less),
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1012,16 +1020,20 @@ private fun LegendaHeatmap(
 
             Spacer(modifier = Modifier.width(3.dp))
             Text(
-                text = "Mais",
+                text = stringResource(R.string.heatmap_more),
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         // Faixas de reps correspondentes no modo ativo
-        val faixasTexto = DashboardCalculator.gerarFaixasLegenda(modo, recordeSix, recordeNavy)
+        val faixasTexto = when {
+            modo == HeatmapMode.AMBOS -> stringResource(R.string.records_average_range)
+            (if (modo == HeatmapMode.SIX_COUNT) recordeSix else recordeNavy) <= 0 -> stringResource(R.string.no_records_yet)
+            else -> DashboardCalculator.gerarFaixasLegenda(modo, recordeSix, recordeNavy)
+        }
         Text(
-            text = "Faixas de reps: $faixasTexto",
+            text = stringResource(R.string.rep_ranges_label, faixasTexto),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),

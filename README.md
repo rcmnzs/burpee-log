@@ -11,11 +11,15 @@ The [Busy Dad Program](https://www.youtube.com/@busydadtraining) is a minimalist
 
 This is an independent project and is **not affiliated with or endorsed by the Busy Dad Training channel or program**.
 
-## Latest Version: v1.0.8
+## Latest Version: v1.0.9
 
 ## Features
 
-- **Busy Dad Program Levels Roadmap (v1.0.8)**:
+- **Multi-Language Support (English & Português (BR))**:
+  - Full support for **English** (default and fallback) and **Português (BR)**.
+  - Seamless in-app language switching in Settings ("Automatic", "English", and "Português (BR)").
+  - Uses modern Android 13+ per-app language APIs (`LocaleManager` & `AppCompatDelegate`) with instant UI updates, and graceful fallback for older versions.
+- **Busy Dad Program Levels Roadmap**:
   - Official progression roadmap from **Level 1A to Graduation** ([busydadtraining.com/levels](https://busydadtraining.com/levels)).
   - Automatic detection of unlocked levels based on the official **same-week rule** (Monday to Sunday) requiring target reps in both Six-Count and Navy Seal sessions.
   - Overall level badge, individual discipline ranks, personal bests, and calculation of exact remaining reps and percentage to reach the next milestone.

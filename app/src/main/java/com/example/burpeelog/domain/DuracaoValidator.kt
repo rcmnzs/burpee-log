@@ -1,5 +1,7 @@
 package com.example.burpeelog.domain
 
+import com.example.R
+
 /**
  * Validador para os campos de duração (minutos e segundos).
  * Regras:
@@ -12,14 +14,16 @@ object DuracaoValidator {
     data class ResultadoValidacao(
         val ehValido: Boolean,
         val totalSegundos: Int = 0,
-        val mensagemErro: String? = null
+        val mensagemErro: String? = null,
+        val mensagemErroRes: Int? = null
     )
 
     fun validar(minutosTexto: String, segundosTexto: String): ResultadoValidacao {
         if (minutosTexto.isBlank() || segundosTexto.isBlank()) {
             return ResultadoValidacao(
                 ehValido = false,
-                mensagemErro = "Informe os minutos e segundos."
+                mensagemErro = "Informe os minutos e segundos.",
+                mensagemErroRes = R.string.error_duration_empty
             )
         }
         val min = minutosTexto.toIntOrNull()
@@ -27,26 +31,30 @@ object DuracaoValidator {
         if (min == null || seg == null) {
             return ResultadoValidacao(
                 ehValido = false,
-                mensagemErro = "Valores numéricos inválidos."
+                mensagemErro = "Valores numéricos inválidos.",
+                mensagemErroRes = R.string.error_duration_invalid_numbers
             )
         }
         if (seg !in 0..59) {
             return ResultadoValidacao(
                 ehValido = false,
-                mensagemErro = "Os segundos devem estar entre 0 e 59."
+                mensagemErro = "Os segundos devem estar entre 0 e 59.",
+                mensagemErroRes = R.string.error_duration_seconds_range
             )
         }
         val total = (min * 60) + seg
         if (total < 1) {
             return ResultadoValidacao(
                 ehValido = false,
-                mensagemErro = "A duração mínima é de 1 segundo (00:01)."
+                mensagemErro = "A duração mínima é de 1 segundo (00:01).",
+                mensagemErroRes = R.string.error_duration_min
             )
         }
         if (total > 3600) {
             return ResultadoValidacao(
                 ehValido = false,
-                mensagemErro = "A duração máxima é de 3600 segundos (60:00)."
+                mensagemErro = "A duração máxima é de 3600 segundos (60:00).",
+                mensagemErroRes = R.string.error_duration_max
             )
         }
         return ResultadoValidacao(ehValido = true, totalSegundos = total)

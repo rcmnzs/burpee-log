@@ -433,7 +433,7 @@ private fun DetalhePontoCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "$tipoNome: ${ponto.reps} reps",
+                        text = stringResource(R.string.exercise_reps_format, tipoNome, ponto.reps),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

@@ -108,7 +108,7 @@ fun WorkoutSummaryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Resumo do Treino",
+                        text = stringResource(R.string.workout_summary_title),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -148,7 +148,7 @@ fun WorkoutSummaryScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Descartar",
+                            text = stringResource(R.string.btn_discard),
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -198,7 +198,7 @@ fun WorkoutSummaryScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Salvar Treino",
+                            text = stringResource(R.string.btn_save_workout),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -249,7 +249,7 @@ fun WorkoutSummaryScreen(
                     }
 
                     Text(
-                        text = if (isCompleto) "Treino Completo Concluído!" else "Treino Parcial Finalizado",
+                        text = if (isCompleto) stringResource(R.string.workout_complete_congrats) else stringResource(R.string.workout_partial_finished),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -260,7 +260,7 @@ fun WorkoutSummaryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = tipo.titulo,
+                            text = stringResource(tipo.tituloRes),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
@@ -271,7 +271,7 @@ fun WorkoutSummaryScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "$tempoFormatado (${minutos}m ${segundos}s)",
+                            text = stringResource(R.string.time_elapsed_parentheses, tempoFormatado, minutos, segundos),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -299,12 +299,12 @@ fun WorkoutSummaryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Repetições Previstas:",
+                            text = stringResource(R.string.target_reps_label),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "$repsPrevistas reps",
+                            text = stringResource(R.string.projected_reps_unit, repsPrevistas),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary,
@@ -313,7 +313,7 @@ fun WorkoutSummaryScreen(
                     }
 
                     Text(
-                        text = "REPETIÇÕES FEITAS",
+                        text = stringResource(R.string.reps_completed_title),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -332,7 +332,7 @@ fun WorkoutSummaryScreen(
                             },
                             modifier = Modifier.testTag("btn_reps_minus")
                         ) {
-                            Icon(imageVector = Icons.Default.Remove, contentDescription = "Diminuir 1 rep")
+                            Icon(imageVector = Icons.Default.Remove, contentDescription = stringResource(R.string.btn_decrease_rep))
                         }
 
                         OutlinedTextField(
@@ -357,15 +357,15 @@ fun WorkoutSummaryScreen(
                             },
                             modifier = Modifier.testTag("btn_reps_plus")
                         ) {
-                            Icon(imageVector = Icons.Default.Add, contentDescription = "Aumentar 1 rep")
+                            Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.btn_increase_rep))
                         }
                     }
 
                     Text(
                         text = if (isPartial) {
-                            "Preenchido automaticamente com as repetições calculadas até a interrupção ($repsFeitasCalculadas reps). Altere se necessário."
+                            stringResource(R.string.summary_partial_info, repsFeitasCalculadas)
                         } else {
-                            "Padrão inicial preenchido com as repetições previstas ($repsPrevistas reps). Altere se necessário."
+                            stringResource(R.string.summary_completed_info, repsPrevistas)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -386,7 +386,7 @@ fun WorkoutSummaryScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Detalhes da Sessão",
+                        text = stringResource(R.string.session_details_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -395,12 +395,12 @@ fun WorkoutSummaryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Exercício:",
+                            text = stringResource(R.string.exercise_label),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = tipo.titulo,
+                            text = stringResource(tipo.tituloRes),
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium
@@ -411,12 +411,12 @@ fun WorkoutSummaryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Padrão de intervalos:",
+                            text = stringResource(R.string.cadence_pattern_label),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "${padrao.joinToString("s, ")}s por minuto",
+                            text = stringResource(R.string.seconds_per_minute_format, padrao.joinToString("s, ")),
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium
@@ -427,12 +427,12 @@ fun WorkoutSummaryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Duração oficial Busy Dad:",
+                            text = stringResource(R.string.busy_dad_duration_label),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "$DURACAO_MINUTOS minutos",
+                            text = stringResource(R.string.minutes_count_format, DURACAO_MINUTOS),
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium
