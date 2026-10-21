@@ -12,8 +12,8 @@ This document describes the security guidelines, threat model, and vulnerability
 - **100% Offline:** The application neither requests nor requires network access (`android.permission.INTERNET`). There are no backend servers, remote APIs, third-party analytics/telemetry, Firebase services, or cloud synchronization. Google Services and Firebase plugins and dependencies have been completely removed from the project.
 - **Strictly Local Storage:** All workout data is persisted inside a local Room SQLite database (`burpee_log.db`), stored within the app's secure internal storage directory (`MODE_PRIVATE`), isolated by Android's application sandbox (Linux UID separation), and protected by native hardware-backed File-Based Encryption (FBE).
 - **No External Authentication:** The app does not manage or store credentials, passwords, API keys, or session tokens.
-- **Controlled Export & Sharing:** Exported CSV files are written exclusively to a scoped cache subfolder (`csv_exports/`) and shared via a restricted `FileProvider` with temporary read-only permissions (`FLAG_GRANT_READ_URI_PERMISSION`).
-- **Formula Injection Defense in Depth:** All CSV export values undergo automatic character sanitization to prevent formula injection execution in external spreadsheet applications (Google Sheets, Microsoft Excel, LibreOffice).
+- **Secure Local Backup & Restore:** Backups and restores use Android Storage Access Framework (SAF) exclusively via scoped document and directory pickers (`ACTION_CREATE_DOCUMENT`, `ACTION_OPEN_DOCUMENT`, and `ACTION_OPEN_DOCUMENT_TREE`). The app requires no broad storage permissions or external FileProviders.
+- **Robust JSON Verification:** All backup files undergo multi-layer integrity verification, validating schema versions, enforcing size limits (max 10 MB), and validating structured session records prior to database insertion.
 
 ---
 
@@ -24,12 +24,12 @@ This document describes the security guidelines, threat model, and vulnerability
 | **M1: Credentials** | Zero secrets, private keys, or access tokens in repository or source code. |
 | **M2: Supply Chain** | Minimal set of trusted dependencies pinned in Gradle. Unused networking and tracking libraries removed. |
 | **M3: Authentication & Components** | Minimized exported attack surface (`MainActivity` is the sole exported activity for Launcher). Services and Content Providers are non-exported (`android:exported="false"`). |
-| **M4: Input & Output Validation** | Strict CSV parser safeguards (max 2 MB size, 10,000 rows, 1,000 characters per row), rep count boundary enforcement (0 to 5,000), date bounds checking (year 2000 to current date), and CSV formula injection neutralization (`=`, `+`, `-`, `@`, `\t`, `\r`). 100% parameterized Room queries. |
+| **M4: Input & Output Validation** | Strict JSON restore validation (max 10 MB file size limit, schemaVersion check, session count bounds, date bounds checking from year 2000 to current date, rep count boundaries 0 to 5,000, duration boundaries 1s to 3,600s, and exercise type enum validation). 100% parameterized Room queries. |
 | **M5: Network Communication** | Zero internet permissions. `android:usesCleartextTraffic="false"` enforced in AndroidManifest.xml. |
 | **M6: Privacy** | Principle of least privilege. No sensitive telemetry or logs. Ongoing workout notification auto-dismisses upon workout completion. |
 | **M7: Binary Protection** | R8/ProGuard code minification (`isMinifyEnabled = true`) and resource shrinking (`isShrinkResources = true`) enabled for release builds. |
 | **M8: Security Configuration** | Explicit backup and data extraction configurations (`data_extraction_rules.xml` and `backup_rules.xml`) preventing extraction of cache files and restricting backups to the primary database. |
-| **M9: Secure Storage** | Internal Room database stored within private app sandbox. FileProvider strictly scoped to the `csv_exports/` directory. |
+| **M9: Secure Storage** | Internal Room database stored within private app sandbox. Backups managed via Storage Access Framework with persistable scoped permissions to user-selected folder only. |
 | **M10: Cryptography** | Data at rest protected by Android OS hardware-backed File-Based Encryption (FBE). No custom or weak software crypto implementations. |
 
 ---

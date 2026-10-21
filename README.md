@@ -49,13 +49,12 @@ This is an independent project and is **not affiliated with the Busy Dad Trainin
 - Progress bars for the next level; unlocked levels show the week they were achieved.
 - A level is unlocked when both Six-Count and Navy Seal thresholds are reached in the same week.
 
-**Data Management & Backup**
-- Complete JSON backup and restore with full validation and preview.
-- Optional automatic local backup to a user-chosen folder via Android Storage Access Framework (SAF).
-- Configurable backup frequency (Weekly or Monthly) with automatic rotation (retains the 5 most recent backups).
-- Optional local backup reminder notification (runs locally, max once per day, only when changes exist).
-- Import past sessions from a CSV file (e.g. exported from Google Sheets) with columns `date`, `six-counts`, and `navyseals`.
-- Interactive CSV preview with deduplication before saving, plus CSV export.
+**Backup & Restore**
+- Complete JSON backup and restore preserving all workout sessions, durations, rep counts, cadence patterns, and notes.
+- Interactive restore preview with schema validation, integrity checking, and duplicate detection.
+- Optional automatic local backups saved to a user-chosen folder via Android Storage Access Framework (SAF).
+- Configurable backup frequency (Weekly or Monthly) with automatic file rotation (keeps the 5 most recent backups).
+- Optional backup reminder notifications (runs locally, maximum once per day, and only when changes exist).
 
 **Customization**
 - Theme: Dark (default), Light, or follow system setting.
@@ -67,19 +66,14 @@ This is an independent project and is **not affiliated with the Busy Dad Trainin
 - Backups are entirely optional and saved exclusively to a local folder chosen by the user.
 - OWASP Mobile Top 10 security audit applied to the codebase.
 
-## Importing Past Sessions
+## Backup & Restore
 
-Prepare a CSV file with a header and one row per day:
+Burpee Log uses a complete, structured JSON file format for backups and restores:
 
-```csv
-date,six-counts,navyseals
-01/09/2026,150,
-03/09/2026,,60
-```
-
-- Accepted date formats: `dd/MM/yyyy` and `yyyy-MM-dd`.
-- Empty or zero cells mean no workout of that type on that day.
-- The app shows a preview and skips duplicates before saving.
+- **Complete Data Preservation:** Backups preserve all workout history including exact session duration, repetition targets, interval cadence patterns, notes, and achievement metadata.
+- **Integrity Validation:** When restoring a backup file, the app verifies the JSON schema, validates data boundaries, checks for corruption, and previews new sessions versus duplicates before committing any changes.
+- **Automatic Backups (Optional):** You can designate a backup folder on your device using Android's Storage Access Framework. The app periodically writes timestamped backups (`burpeelog-backup-YYYY-MM-DD.json`) and automatically manages rotation to keep the 5 most recent files.
+- **100% Offline & Private:** Backup operations are completely local. The app has no internet permission, no network libraries, and never connects to any cloud service.
 
 ## How to Install and Test
 

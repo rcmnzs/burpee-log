@@ -249,41 +249,8 @@
 
     <!-- Settings & Data -->
     <string name="settings_and_data_title">Configurações e Dados</string>
-    <string name="import_csv_title">Importar do Google Sheets (CSV)</string>
-    <string name="import_csv_header_info">Cabeçalho: Data, Six-Counts, Navy Seals</string>
-    <string name="import_csv_header">Cabeçalho: Data, Six-Counts, Navy Seals</string>
-    <string name="import_csv_desc">O arquivo exportado de sua planilha deve conter as colunas de data e repetições. Aceita formatos dd/MM/yyyy, d/M/yyyy, yyyy-MM-dd e separadores vírgula (,) ou ponto e vírgula (;).</string>
-    <string name="btn_import_csv">Importar CSV</string>
-    <string name="export_csv_title">Exportar Histórico (CSV)</string>
-    <string name="export_csv_count">%1$d sessões disponíveis para exportação</string>
-    <string name="export_csv_desc">Gera um arquivo CSV formatado com Data (dd/MM/yyyy), Six-Counts e Navy Seals (somando os treinos do mesmo dia por tipo), compatível com Google Sheets e Excel.</string>
-    <string name="btn_export_csv">Exportar CSV</string>
-    <string name="import_preview_title">Prévia da Importação</string>
-    <string name="import_preview_ready">Arquivo CSV lido e validado com sucesso</string>
-    <string name="import_preview_lines_read">Linhas lidas no arquivo:</string>
-    <string name="import_preview_sessions_create">Sessões a serem criadas:</string>
-    <string name="import_preview_duplicates">Ignoradas por duplicidade:</string>
-    <string name="import_preview_first_lines">Primeiras Linhas (%1$d):</string>
-    <string name="import_preview_error_lines">Linhas com Erro (%1$d):</string>
-    <string name="import_preview_row_error_format">Linha %1$d: %2$s</string>
-    <string name="import_preview_no_valid_sessions">Nenhuma nova sessão válida para criar.</string>
     <string name="btn_confirm_count">Confirmar (%1$d sessões)</string>
     <string name="saving_progress">Gravando...</string>
-    <string name="lines_read_count">Linhas lidas: %1$d</string>
-    <string name="sessions_to_create_count">Sessões a serem criadas: %1$d</string>
-    <string name="duplicates_skipped_count">Duplicidades ignoradas: %1$d</string>
-    <string name="first_rows_preview">Prévia das primeiras linhas:</string>
-    <string name="dialog_import_confirm_desc">Ao confirmar, as sessões válidas serão gravadas no banco de dados local com garantia transacional.</string>
-    <string name="btn_confirm_import">Confirmar Importação</string>
-    <string name="toast_import_success">Sucesso: %1$d sessões gravadas em transação!</string>
-    <string name="toast_import_error">Erro ao gravar as sessões no banco de dados.</string>
-    <string name="toast_import_db_error">Erro ao gravar as sessões no banco de dados.</string>
-    <string name="toast_export_error">Erro ao gerar o arquivo de exportação.</string>
-    <string name="export_subject">Burpee Log - Exportação de Treinos</string>
-    <string name="export_chooser_title">Exportar Treinos do Burpee Log</string>
-    <string name="toast_csv_too_large">Arquivo excede o tamanho máximo permitido de 2 MB</string>
-    <string name="toast_csv_empty">Arquivo vazio ou ilegível</string>
-    <string name="toast_csv_read_error">Erro ao ler o arquivo CSV</string>
 
     <!-- Notifications & Service -->
     <string name="notif_channel_name">Cronômetro de Treino</string>
@@ -401,12 +368,11 @@
     <string name="error_duration_max">A duração máxima é de 3600 segundos (60:00).</string>
     <string name="per_minute_format">%1$s /min</string>
     <string name="exercise_reps_format">%1$s: %2$d reps</string>
-    <string name="csv_row_format">L%1$d: %2$s</string>
 
     <!-- Backup & Restore -->
     <string name="backup_card_title">Backup Completo</string>
     <string name="backup_card_subtitle">Formato JSON · Histórico completo</string>
-    <string name="backup_card_desc">Exporte ou restaure todos os treinos, durações, cadências e anotações em um único arquivo JSON.</string>
+    <string name="backup_card_desc">O arquivo JSON guarda todas as sessões, com duração e observações, e é o único formato de backup e restauração.</string>
     <string name="btn_fazer_backup">Fazer backup</string>
     <string name="btn_restaurar_backup">Restaurar backup</string>
     <string name="toast_backup_export_success">Backup salvo com sucesso</string>

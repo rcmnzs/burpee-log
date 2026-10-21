@@ -140,7 +140,7 @@ class AutoBackupCalculatorTest {
         // Inválidos
         assertFalse(AutoBackupCalculator.isBackupFileName("burpeelog-backup-2026-13-45.json")) // Mês inválido
         assertFalse(AutoBackupCalculator.isBackupFileName("burpeelog-backup.json"))
-        assertFalse(AutoBackupCalculator.isBackupFileName("burpeelog-backup-2026-10-21.csv"))
+        assertFalse(AutoBackupCalculator.isBackupFileName("burpeelog-backup-2026-10-21.bak"))
         assertFalse(AutoBackupCalculator.isBackupFileName("burpeelog-backup-2026-10-21 (1).json"))
         assertFalse(AutoBackupCalculator.isBackupFileName("outro-backup-2026-10-21.json"))
         assertFalse(AutoBackupCalculator.isBackupFileName("notas.txt"))
@@ -159,7 +159,7 @@ class AutoBackupCalculatorTest {
             BackupFileInfo("burpeelog-backup-2026-10-16.json", lastModified = 100L), // 6º mais recente -> deve apagar
             BackupFileInfo("burpeelog-backup-2026-10-15.json", lastModified = 50L),  // 7º mais recente -> deve apagar
             // Arquivos alheios que NUNCA devem ser apagados
-            BackupFileInfo("burpee_export.csv", lastModified = 900L),
+            BackupFileInfo("planilha_treino.xlsx", lastModified = 900L),
             BackupFileInfo("anotacoes_importantes.txt", lastModified = 800L),
             BackupFileInfo("fotos_treino.zip", lastModified = 700L),
             BackupFileInfo("backup_outro_app.json", lastModified = 650L)
@@ -174,7 +174,7 @@ class AutoBackupCalculatorTest {
         assertTrue(namesToDelete.contains("burpeelog-backup-2026-10-15.json"))
 
         // Garante que nenhum arquivo fora do padrão foi selecionado para exclusão
-        assertFalse(namesToDelete.contains("burpee_export.csv"))
+        assertFalse(namesToDelete.contains("planilha_treino.xlsx"))
         assertFalse(namesToDelete.contains("anotacoes_importantes.txt"))
         assertFalse(namesToDelete.contains("fotos_treino.zip"))
         assertFalse(namesToDelete.contains("backup_outro_app.json"))

@@ -249,41 +249,8 @@
 
     <!-- Settings & Data -->
     <string name="settings_and_data_title">Settings &amp; Data</string>
-    <string name="import_csv_title">Import from Google Sheets (CSV)</string>
-    <string name="import_csv_header_info">Header: Date, Six-Counts, Navy Seals</string>
-    <string name="import_csv_header">Header: Date, Six-Counts, Navy Seals</string>
-    <string name="import_csv_desc">Exported CSV files must contain date and repetition columns. Accepts dd/MM/yyyy, d/M/yyyy, yyyy-MM-dd formats and comma (,) or semicolon (;) delimiters.</string>
-    <string name="btn_import_csv">Import CSV</string>
-    <string name="export_csv_title">Export History (CSV)</string>
-    <string name="export_csv_count">%1$d sessions available to export</string>
-    <string name="export_csv_desc">Generates a CSV file with Date (dd/MM/yyyy), Six-Counts, and Navy Seals (summing workouts of the same day per type), compatible with Google Sheets and Excel.</string>
-    <string name="btn_export_csv">Export CSV</string>
-    <string name="import_preview_title">Import Preview</string>
-    <string name="import_preview_ready">CSV read successfully and validated</string>
-    <string name="import_preview_lines_read">File rows read:</string>
-    <string name="import_preview_sessions_create">Sessions to create:</string>
-    <string name="import_preview_duplicates">Ignored duplicates:</string>
-    <string name="import_preview_first_lines">First Rows (%1$d):</string>
-    <string name="import_preview_error_lines">Rows with Errors (%1$d):</string>
-    <string name="import_preview_row_error_format">Row %1$d: %2$s</string>
-    <string name="import_preview_no_valid_sessions">No new valid sessions to create.</string>
     <string name="btn_confirm_count">Confirm (%1$d sessions)</string>
     <string name="saving_progress">Saving...</string>
-    <string name="lines_read_count">Rows read: %1$d</string>
-    <string name="sessions_to_create_count">Sessions to create: %1$d</string>
-    <string name="duplicates_skipped_count">Duplicates skipped: %1$d</string>
-    <string name="first_rows_preview">First rows preview:</string>
-    <string name="dialog_import_confirm_desc">Once confirmed, sessions will be committed to your local database in a secure transaction.</string>
-    <string name="btn_confirm_import">Confirm Import</string>
-    <string name="toast_import_success">Success: %1$d sessions saved to database!</string>
-    <string name="toast_import_error">Error saving sessions to database.</string>
-    <string name="toast_import_db_error">Error saving sessions to database.</string>
-    <string name="toast_export_error">Error generating export file.</string>
-    <string name="export_subject">Burpee Log - Workout Export</string>
-    <string name="export_chooser_title">Export Burpee Log Workouts</string>
-    <string name="toast_csv_too_large">File exceeds maximum allowed size of 2 MB</string>
-    <string name="toast_csv_empty">File is empty or unreadable</string>
-    <string name="toast_csv_read_error">Error reading CSV file</string>
 
     <!-- Notifications & Service -->
     <string name="notif_channel_name">Workout Timer</string>
@@ -401,12 +368,11 @@
     <string name="error_duration_max">Maximum duration is 3600 seconds (60:00).</string>
     <string name="per_minute_format">%1$s /min</string>
     <string name="exercise_reps_format">%1$s: %2$d reps</string>
-    <string name="csv_row_format">R%1$d: %2$s</string>
 
     <!-- Backup & Restore -->
     <string name="backup_card_title">Full Backup</string>
     <string name="backup_card_subtitle">JSON format · Complete history</string>
-    <string name="backup_card_desc">Export or restore all workouts, durations, interval patterns, and notes in a single JSON file.</string>
+    <string name="backup_card_desc">The JSON file stores all workout sessions with duration and notes, serving as the exclusive backup and restore format.</string>
     <string name="btn_fazer_backup">Back Up</string>
     <string name="btn_restaurar_backup">Restore</string>
     <string name="toast_backup_export_success">Backup saved successfully</string>
