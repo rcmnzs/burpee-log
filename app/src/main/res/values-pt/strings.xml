@@ -428,4 +428,32 @@
     <string name="backup_preview_error_lines">Sessões com Erro (%1$d):</string>
     <string name="backup_preview_error_format">Item %1$d: %2$s</string>
     <string name="backup_preview_no_sessions_to_add">Nenhuma sessão nova válida para restaurar.</string>
+
+    <!-- Backup Automático e Lembretes -->
+    <string name="backup_freq_weekly">Semanal</string>
+    <string name="backup_freq_monthly">Mensal</string>
+    <string name="backup_freq_title">Frequência</string>
+    <string name="btn_choose_backup_folder">Escolher pasta de backup</string>
+    <string name="backup_folder_selected">Pasta: %1$s</string>
+    <string name="backup_no_folder_selected">Nenhuma pasta selecionada</string>
+    <string name="backup_switch_auto">Backup automático</string>
+    <string name="backup_switch_auto_desc">Grava o histórico automaticamente na pasta escolhida</string>
+    <string name="backup_switch_reminder">Lembrete de backup</string>
+    <string name="backup_switch_reminder_desc">Avisa quando o backup estiver vencido</string>
+    <string name="backup_last_backup">Último backup: %1$s</string>
+    <string name="backup_never_backed_up">Nenhum backup ainda</string>
+    <string name="btn_backup_now">Fazer backup agora</string>
+    <string name="toast_auto_backup_success">Backup gravado na pasta com sucesso</string>
+    <string name="toast_auto_backup_folder_error">A pasta de backup não está mais acessível. Escolha outra pasta.</string>
+    <string name="backup_folder_error_banner">A pasta de backup não está mais acessível. Escolha outra pasta.</string>
+    <string name="permission_notification_denied">Permissão de notificação negada. O lembrete de backup não pôde ser ativado.</string>
+    <string name="notification_channel_backup_name">Backup</string>
+    <string name="notification_channel_backup_desc">Avisos e lembretes de backup</string>
+    <string name="notification_backup_reminder_title">Lembrete de backup</string>
+    <string name="notification_backup_reminder_text">Seu histórico de treinos só existe neste aparelho. Faça um backup para não perder seus dados.</string>
+
+    <plurals name="days_ago_plural">
+        <item quantity="one">há %1$d dia</item>
+        <item quantity="other">há %1$d dias</item>
+    </plurals>
 </resources>

@@ -27,10 +27,21 @@ import com.example.burpeelog.ui.screens.RoadmapScreen
 import com.example.burpeelog.ui.screens.WorkoutScreen
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    initialMostrandoDados: Boolean = false,
+    onResetAbrirDados: (() -> Unit)? = null
+) {
     var selectedTab by rememberSaveable { mutableStateOf(NavTab.INICIO) }
-    var mostrandoDados by rememberSaveable { mutableStateOf(false) }
+    var mostrandoDados by rememberSaveable { mutableStateOf(initialMostrandoDados) }
     var mostrandoRoadmap by rememberSaveable { mutableStateOf(false) }
+
+    androidx.compose.runtime.LaunchedEffect(initialMostrandoDados) {
+        if (initialMostrandoDados) {
+            mostrandoDados = true
+            onResetAbrirDados?.invoke()
+        }
+    }
 
     // If on DadosScreen, RoadmapScreen, or a secondary tab, pressing back navigates back appropriately
     BackHandler(enabled = mostrandoDados || mostrandoRoadmap || selectedTab != NavTab.INICIO) {

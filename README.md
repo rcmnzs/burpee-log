@@ -49,18 +49,22 @@ This is an independent project and is **not affiliated with the Busy Dad Trainin
 - Progress bars for the next level; unlocked levels show the week they were achieved.
 - A level is unlocked when both Six-Count and Navy Seal thresholds are reached in the same week.
 
-**Data Import & Export**
+**Data Management & Backup**
+- Complete JSON backup and restore with full validation and preview.
+- Optional automatic local backup to a user-chosen folder via Android Storage Access Framework (SAF).
+- Configurable backup frequency (Weekly or Monthly) with automatic rotation (retains the 5 most recent backups).
+- Optional local backup reminder notification (runs locally, max once per day, only when changes exist).
 - Import past sessions from a CSV file (e.g. exported from Google Sheets) with columns `date`, `six-counts`, and `navyseals`.
-- Interactive preview with deduplication before saving.
-- CSV export for backup.
+- Interactive CSV preview with deduplication before saving, plus CSV export.
 
 **Customization**
 - Theme: Dark (default), Light, or follow system setting.
 - Language: English (default) or Português (BR), switchable in settings independently of the device language.
 
 **Privacy & Security**
-- 100% offline: no internet permission, no analytics, no accounts, no cloud.
-- All data stored locally using Room (SQLite) in the app's private sandbox.
+- 100% offline: no internet permission, no analytics, no accounts, no cloud access.
+- All data is stored locally using Room (SQLite) in the app's private sandbox.
+- Backups are entirely optional and saved exclusively to a local folder chosen by the user.
 - OWASP Mobile Top 10 security audit applied to the codebase.
 
 ## Importing Past Sessions
@@ -104,6 +108,7 @@ The project is **open source**. Anyone can install and test it.
 - Room (local database)
 - DataStore (preferences)
 - Android Foreground Service (background timer)
+- WorkManager (scheduled auto-backup)
 
 ## Security
 

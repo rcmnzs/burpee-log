@@ -21,4 +21,16 @@ class BurpeeLogApplication : Application() {
     val workoutSessionManager: com.example.burpeelog.service.WorkoutSessionManager by lazy {
         com.example.burpeelog.service.WorkoutSessionManager(this)
     }
+    val autoBackupPreferences: com.example.burpeelog.data.preferences.AutoBackupPreferences by lazy {
+        com.example.burpeelog.data.preferences.AutoBackupPreferences(this)
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        try {
+            com.example.burpeelog.service.AutoBackupWorker.scheduleDailyCheck(this)
+        } catch (_: Exception) {
+            // Safe fallback if WorkManager initialization differs in test environments
+        }
+    }
 }

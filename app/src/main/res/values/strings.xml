@@ -428,4 +428,32 @@
     <string name="backup_preview_error_lines">Sessions with Errors (%1$d):</string>
     <string name="backup_preview_error_format">Item %1$d: %2$s</string>
     <string name="backup_preview_no_sessions_to_add">No new valid sessions to restore.</string>
+
+    <!-- Auto Backup & Reminders -->
+    <string name="backup_freq_weekly">Weekly</string>
+    <string name="backup_freq_monthly">Monthly</string>
+    <string name="backup_freq_title">Frequency</string>
+    <string name="btn_choose_backup_folder">Choose backup folder</string>
+    <string name="backup_folder_selected">Folder: %1$s</string>
+    <string name="backup_no_folder_selected">No folder selected</string>
+    <string name="backup_switch_auto">Automatic backup</string>
+    <string name="backup_switch_auto_desc">Automatically saves backup to selected folder</string>
+    <string name="backup_switch_reminder">Backup reminder</string>
+    <string name="backup_switch_reminder_desc">Notifies when backup is overdue</string>
+    <string name="backup_last_backup">Last backup: %1$s</string>
+    <string name="backup_never_backed_up">No backup yet</string>
+    <string name="btn_backup_now">Back up now</string>
+    <string name="toast_auto_backup_success">Backup saved to folder successfully</string>
+    <string name="toast_auto_backup_folder_error">Backup folder is inaccessible. Please choose another folder.</string>
+    <string name="backup_folder_error_banner">The backup folder is no longer accessible. Please choose another folder.</string>
+    <string name="permission_notification_denied">Notification permission was denied. The backup reminder cannot be enabled.</string>
+    <string name="notification_channel_backup_name">Backup</string>
+    <string name="notification_channel_backup_desc">Backup notifications and reminders</string>
+    <string name="notification_backup_reminder_title">Backup Reminder</string>
+    <string name="notification_backup_reminder_text">Your workout history only exists on this device. Back up now to keep your data safe.</string>
+
+    <plurals name="days_ago_plural">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
 </resources>
