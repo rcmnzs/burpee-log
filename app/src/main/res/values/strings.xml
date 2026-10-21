@@ -402,4 +402,30 @@
     <string name="per_minute_format">%1$s /min</string>
     <string name="exercise_reps_format">%1$s: %2$d reps</string>
     <string name="csv_row_format">R%1$d: %2$s</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_card_title">Full Backup</string>
+    <string name="backup_card_subtitle">JSON format · Complete history</string>
+    <string name="backup_card_desc">Export or restore all workouts, durations, interval patterns, and notes in a single JSON file.</string>
+    <string name="btn_fazer_backup">Back Up</string>
+    <string name="btn_restaurar_backup">Restore</string>
+    <string name="toast_backup_export_success">Backup saved successfully</string>
+    <string name="toast_backup_export_error">Error saving backup file</string>
+    <string name="toast_backup_read_error">Error reading backup file</string>
+    <string name="toast_backup_too_large">File exceeds maximum size of 10 MB</string>
+    <string name="toast_backup_invalid_json">Invalid or corrupt JSON file</string>
+    <string name="toast_backup_unsupported_version">Unsupported backup version (%1$d). Please update the app.</string>
+    <string name="toast_backup_restore_success">Backup restored: %1$d workouts added</string>
+    <string name="toast_backup_restore_error">Error saving restored sessions to database</string>
+    <string name="toast_backup_no_sessions">No workouts available to export</string>
+
+    <!-- Backup Preview Dialog -->
+    <string name="backup_preview_title">Restore Backup</string>
+    <string name="backup_preview_sessions_read">Sessions found:</string>
+    <string name="backup_preview_sessions_add">To be added:</string>
+    <string name="backup_preview_duplicates">Skipped (duplicates):</string>
+    <string name="backup_preview_errors">Skipped (invalid):</string>
+    <string name="backup_preview_error_lines">Sessions with Errors (%1$d):</string>
+    <string name="backup_preview_error_format">Item %1$d: %2$s</string>
+    <string name="backup_preview_no_sessions_to_add">No new valid sessions to restore.</string>
 </resources>

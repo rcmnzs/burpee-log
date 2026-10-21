@@ -402,4 +402,30 @@
     <string name="per_minute_format">%1$s /min</string>
     <string name="exercise_reps_format">%1$s: %2$d reps</string>
     <string name="csv_row_format">L%1$d: %2$s</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_card_title">Backup Completo</string>
+    <string name="backup_card_subtitle">Formato JSON · Histórico completo</string>
+    <string name="backup_card_desc">Exporte ou restaure todos os treinos, durações, cadências e anotações em um único arquivo JSON.</string>
+    <string name="btn_fazer_backup">Fazer backup</string>
+    <string name="btn_restaurar_backup">Restaurar backup</string>
+    <string name="toast_backup_export_success">Backup salvo com sucesso</string>
+    <string name="toast_backup_export_error">Erro ao salvar arquivo de backup</string>
+    <string name="toast_backup_read_error">Erro ao ler arquivo de backup</string>
+    <string name="toast_backup_too_large">Arquivo excede o limite máximo de 10 MB</string>
+    <string name="toast_backup_invalid_json">Arquivo JSON inválido ou corrompido</string>
+    <string name="toast_backup_unsupported_version">Versão de backup não suportada (%1$d). Atualize o aplicativo.</string>
+    <string name="toast_backup_restore_success">Backup restaurado: %1$d treinos adicionados</string>
+    <string name="toast_backup_restore_error">Erro ao gravar sessões restauradas no banco de dados</string>
+    <string name="toast_backup_no_sessions">Nenhum treino disponível para exportar</string>
+
+    <!-- Backup Preview Dialog -->
+    <string name="backup_preview_title">Restaurar Backup</string>
+    <string name="backup_preview_sessions_read">Sessões encontradas:</string>
+    <string name="backup_preview_sessions_add">A serem adicionadas:</string>
+    <string name="backup_preview_duplicates">Ignoradas (duplicadas):</string>
+    <string name="backup_preview_errors">Ignoradas (inválidas):</string>
+    <string name="backup_preview_error_lines">Sessões com Erro (%1$d):</string>
+    <string name="backup_preview_error_format">Item %1$d: %2$s</string>
+    <string name="backup_preview_no_sessions_to_add">Nenhuma sessão nova válida para restaurar.</string>
 </resources>

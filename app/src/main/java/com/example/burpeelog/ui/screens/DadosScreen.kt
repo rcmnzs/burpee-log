@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FileDownload
@@ -68,19 +70,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.BuildConfig
 import com.example.R
 import com.example.burpeelog.BurpeeLogApplication
 import com.example.burpeelog.data.preferences.AppLanguage
 import com.example.burpeelog.data.preferences.AppTheme
+import com.example.burpeelog.domain.BackupManager
+import com.example.burpeelog.domain.BackupParseResult
+import com.example.burpeelog.domain.BackupPreview
 import com.example.burpeelog.domain.CsvImportPreview
 import com.example.burpeelog.domain.CsvManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,6 +109,134 @@ fun DadosScreen(
     var previewImportacao by remember { mutableStateOf<CsvImportPreview?>(null) }
     var isImportando by remember { mutableStateOf(false) }
     var isExportando by remember { mutableStateOf(false) }
+
+    var previewBackup by remember { mutableStateOf<BackupPreview?>(null) }
+    var isRestaurandoBackup by remember { mutableStateOf(false) }
+    var isExportandoBackup by remember { mutableStateOf(false) }
+
+    // Launcher do Storage Access Framework para criação do arquivo JSON de backup
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    isExportandoBackup = true
+                    val jsonString = BackupManager.gerarBackupJson(
+                        sessoes = todasSessoes,
+                        appVersion = BuildConfig.VERSION_NAME
+                    )
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            outputStream.write(jsonString.toByteArray(Charsets.UTF_8))
+                            outputStream.flush()
+                        }
+                    }
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_backup_export_success),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } catch (_: Exception) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_backup_export_error),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } finally {
+                    isExportandoBackup = false
+                }
+            }
+        }
+    }
+
+    // Launcher do Storage Access Framework para seleção do arquivo JSON de backup
+    val openDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    var isTooLarge = false
+                    val maxBytes = BackupManager.MAX_BACKUP_SIZE_BYTES
+                    val jsonString = withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            val buffer = ByteArray(8192)
+                            val baos = ByteArrayOutputStream()
+                            var totalRead = 0L
+                            var read: Int
+                            while (stream.read(buffer).also { read = it } != -1) {
+                                totalRead += read
+                                if (totalRead > maxBytes) {
+                                    isTooLarge = true
+                                    return@use null
+                                }
+                                baos.write(buffer, 0, read)
+                            }
+                            baos.toString(Charsets.UTF_8.name())
+                        }
+                    }
+
+                    if (isTooLarge) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.toast_backup_too_large),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else if (jsonString.isNullOrBlank()) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.toast_backup_invalid_json),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        when (val resultado = BackupManager.processarBackupJson(jsonString, todasSessoes)) {
+                            is BackupParseResult.Sucesso -> {
+                                previewBackup = resultado.preview
+                            }
+                            is BackupParseResult.ArquivoMuitoGrande -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.toast_backup_too_large),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            is BackupParseResult.JsonInvalido -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.toast_backup_invalid_json),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            is BackupParseResult.VersaoNaoSuportada -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(
+                                        R.string.toast_backup_unsupported_version,
+                                        resultado.versaoEncontrada
+                                    ),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            is BackupParseResult.FormatoInvalido -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.toast_backup_invalid_json),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                } catch (_: Exception) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_backup_read_error),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
     // Launcher do Storage Access Framework para selecionar arquivo CSV
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -351,6 +487,123 @@ fun DadosScreen(
                 }
             }
 
+            // Seção: Backup Completo (JSON)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("card_backup"),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.tertiaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Backup,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.backup_card_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.backup_card_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = stringResource(R.string.backup_card_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                if (todasSessoes.isEmpty()) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.toast_backup_no_sessions),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    val defaultNome = BackupManager.gerarNomeArquivoBackup()
+                                    createDocumentLauncher.launch(defaultNome)
+                                }
+                            },
+                            enabled = !isExportandoBackup,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .testTag("btn_fazer_backup"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            if (isExportandoBackup) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.btn_fazer_backup),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                openDocumentLauncher.launch(arrayOf("application/json", "application/*", "text/*", "*/*"))
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .testTag("btn_restaurar_backup"),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.btn_restaurar_backup),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
             // Seção 2: Importar CSV
             Card(
                 modifier = Modifier
@@ -548,6 +801,171 @@ fun DadosScreen(
             onCancelar = { previewImportacao = null }
         )
     }
+
+    // Diálogo de Prévia de Backup
+    previewBackup?.let { preview ->
+        DialogPreviaBackup(
+            preview = preview,
+            isRestaurando = isRestaurandoBackup,
+            onConfirmar = {
+                if (!isRestaurandoBackup) {
+                    isRestaurandoBackup = true
+                    scope.launch {
+                        try {
+                            repository.importarSessoes(preview.sessoesParaAdicionar)
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_backup_restore_success, preview.sessoesParaAdicionar.size),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            previewBackup = null
+                        } catch (_: Exception) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_backup_restore_error),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } finally {
+                            isRestaurandoBackup = false
+                        }
+                    }
+                }
+            },
+            onCancelar = { previewBackup = null }
+        )
+    }
+}
+
+/**
+ * Diálogo com a prévia detalhada da restauração de backup JSON:
+ * - Sessões lidas
+ * - Sessões a serem adicionadas
+ * - Sessões ignoradas por duplicidade
+ * - Sessões ignoradas por erro/invalidação
+ * - Lista de erros detalhados
+ * - Botões Confirmar e Cancelar
+ */
+@Composable
+private fun DialogPreviaBackup(
+    preview: BackupPreview,
+    isRestaurando: Boolean,
+    onConfirmar: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isRestaurando) onCancelar() },
+        title = {
+            Text(text = stringResource(R.string.backup_preview_title), fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Métricas do backup
+                OutlinedCard(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.backup_preview_sessions_read), style = MaterialTheme.typography.bodySmall)
+                            Text("${preview.totalLidas}", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.backup_preview_sessions_add), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                            Text("${preview.totalParaAdicionar}", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.backup_preview_duplicates), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("${preview.totalDuplicadas}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (preview.totalErros > 0) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stringResource(R.string.backup_preview_errors), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                Text("${preview.totalErros}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    }
+                }
+
+                // Lista de erros (se houver)
+                if (preview.erros.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.backup_preview_error_lines, preview.erros.size),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        preview.erros.forEach { erro ->
+                            Row(verticalAlignment = Alignment.Top) {
+                                Icon(
+                                    imageVector = Icons.Default.ErrorOutline,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(14.dp).padding(top = 2.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = stringResource(R.string.backup_preview_error_format, erro.indice, erro.mensagem),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (preview.sessoesParaAdicionar.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.backup_preview_no_sessions_to_add),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmar,
+                enabled = !isRestaurando && preview.sessoesParaAdicionar.isNotEmpty(),
+                modifier = Modifier.testTag("btn_confirmar_restauracao")
+            ) {
+                if (isRestaurando) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.saving_progress))
+                } else {
+                    Text(stringResource(R.string.btn_confirm_count, preview.sessoesParaAdicionar.size))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onCancelar,
+                enabled = !isRestaurando,
+                modifier = Modifier.testTag("btn_cancelar_restauracao")
+            ) {
+                Text(stringResource(R.string.btn_cancel))
+            }
+        }
+    )
 }
 
 /**
