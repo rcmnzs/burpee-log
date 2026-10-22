@@ -40,7 +40,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Switch
+import com.example.burpeelog.ui.components.BurpeeSwitch
 import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import com.example.burpeelog.data.preferences.AutoBackupState
@@ -590,7 +590,7 @@ fun DadosScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        BurpeeSwitch(
                             checked = autoBackupState.autoBackupEnabled,
                             onCheckedChange = { checked ->
                                 scope.launch {
@@ -622,7 +622,7 @@ fun DadosScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
+                        BurpeeSwitch(
                             checked = autoBackupState.reminderEnabled,
                             onCheckedChange = { checked ->
                                 if (checked) {

@@ -18,6 +18,11 @@ val CyanOnSecondary = Color(0xFF000000)
 val CyanContainer = Color(0xFF004047)
 val CyanOnContainer = Color(0xFFB0F4FF)
 
+val AmberTertiary = Color(0xFFFFB300) // Athletic Warm Gold / Amber Accent
+val AmberOnTertiary = Color(0xFF000000)
+val AmberTertiaryContainer = Color(0xFF4A3400)
+val AmberOnTertiaryContainer = Color(0xFFFFE082)
+
 val TextPrimary = Color(0xFFF1F3F7)
 val TextSecondary = Color(0xFFA2A8B4)
 val OutlineBorder = Color(0xFF333842)
@@ -37,6 +42,11 @@ val CyanSecondaryLight = Color(0xFF006874)
 val CyanOnSecondaryLight = Color(0xFFFFFFFF)
 val CyanContainerLight = Color(0xFF97F0FF)
 val CyanOnContainerLight = Color(0xFF001F24)
+
+val AmberTertiaryLight = Color(0xFFB26A00)
+val AmberOnTertiaryLight = Color(0xFFFFFFFF)
+val AmberTertiaryContainerLight = Color(0xFFFFE082)
+val AmberOnTertiaryContainerLight = Color(0xFF2A1700)
 
 val TextPrimaryLight = Color(0xFF1A1C1E)
 val TextSecondaryLight = Color(0xFF5A5F6B)
